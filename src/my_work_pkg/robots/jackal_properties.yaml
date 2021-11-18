@@ -1,0 +1,33 @@
+# slopes::
+# mechanical:
+reference_frame_id: "base_link"
+
+center_of_gravity:             # distance of reference_frame_id to cog
+  x: 0.0147329362484
+  y: 0.00176019942301
+  z: 0.0664169344025
+
+wheel:                         # distance of reference_frame_id to contact point of ground and the neerest wheel to cog.
+  x: 0.131
+  y: 0.187795
+  z: -0.0635
+
+dist_cog_wheel:                # TODO: calc from wheel and center_of_gravity
+  x: 0.11626706375160001
+  y: 0.18603480057698998
+  z: 0.12991693440250002
+
+acceleration_max:
+  x: 3.0                      # 20 m/s^2  # from $(find jackal_control)/config/control.yaml
+  y: 0.0
+  z: 0.0
+velocity_max:
+  x: 2.0                       # m/s  # from $(find jackal_control)/config/control.yaml
+  y: 0.0
+  z: 0.0
+
+motor_max_incline: 0.7 #?              # TODO: may also be calc from torque_max, weight and wheelradius
+slip_tolerance_max_incline: 0.7 #?     # max angle at which the silpage is within tolerance
+
+#::
+ground_clearance: ""

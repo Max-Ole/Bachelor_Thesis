@@ -1,0 +1,5 @@
+my_work_pkg
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/my_work_pkg/cmake.lock /home/ubuntu/Desktop/BA_MaxOle_ws/devel/./cmake.lock
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/my_work_pkg/lib/pkgconfig/my_work_pkg.pc /home/ubuntu/Desktop/BA_MaxOle_ws/devel/lib/pkgconfig/my_work_pkg.pc
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/my_work_pkg/share/my_work_pkg/cmake/my_work_pkgConfig.cmake /home/ubuntu/Desktop/BA_MaxOle_ws/devel/share/my_work_pkg/cmake/my_work_pkgConfig.cmake
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/my_work_pkg/share/my_work_pkg/cmake/my_work_pkgConfig-version.cmake /home/ubuntu/Desktop/BA_MaxOle_ws/devel/share/my_work_pkg/cmake/my_work_pkgConfig-version.cmake

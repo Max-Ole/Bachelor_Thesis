@@ -1,0 +1,7 @@
+ouster_example/ouster_viz
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_viz/cmake.lock /home/ubuntu/Desktop/BA_MaxOle_ws/devel/./cmake.lock
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_viz/lib/libouster_viz.a /home/ubuntu/Desktop/BA_MaxOle_ws/devel/lib/libouster_viz.a
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_viz/lib/ouster_viz/viz /home/ubuntu/Desktop/BA_MaxOle_ws/devel/lib/ouster_viz/viz
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_viz/lib/pkgconfig/ouster_viz.pc /home/ubuntu/Desktop/BA_MaxOle_ws/devel/lib/pkgconfig/ouster_viz.pc
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_viz/share/ouster_viz/cmake/ouster_vizConfig-version.cmake /home/ubuntu/Desktop/BA_MaxOle_ws/devel/share/ouster_viz/cmake/ouster_vizConfig-version.cmake
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_viz/share/ouster_viz/cmake/ouster_vizConfig.cmake /home/ubuntu/Desktop/BA_MaxOle_ws/devel/share/ouster_viz/cmake/ouster_vizConfig.cmake

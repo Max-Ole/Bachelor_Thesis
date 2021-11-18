@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- Launch the grid map image to grid map demo node. -->
+  <node pkg="rescue_jackal" type="rescue_jackal_node" name="grid_to_image_republisher_node" output="screen" />
+
+</launch>

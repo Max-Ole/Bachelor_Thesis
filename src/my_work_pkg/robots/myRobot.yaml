@@ -1,0 +1,22 @@
+# DEPRECATED # point_cloud_topic: "/points"
+input_sources:
+    zedCamera_front: # A name to identify the input source
+      type: pointcloud # Supported types: pointcloud
+      topic: /lidar_front/depth/points
+      queue_size: 1
+      publish_on_update: true # Wheter to publish the elevation map after a callback from this source. 
+      sensor_processor/type: perfect
+    #lidar_3d:
+    #  type: pointcloud
+    #  topic: /lidar_rear/depth/points
+    #  queue_size: 5
+    #  publish_on_update: false
+
+map_frame_id: "map"
+robot_base_frame_id: "base"
+robot_pose_with_covariance_topic: "/pose"
+robot_pose_cache_size: 200
+track_point_frame_id: "base"
+track_point_x: 0.0
+track_point_y: 0.0
+track_point_z: 0.0

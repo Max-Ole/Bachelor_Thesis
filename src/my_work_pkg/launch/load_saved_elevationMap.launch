@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- Def Args. -->
+  <arg name="gui"       default="true"/>
+  <arg name="rviz"      default="true"/>
+  
+  <!-- <arg name="config"    default="ouster" /> -->
+  <arg name="config"    default="front_bumblebee2" />
+  
+  <!-- <arg name="world"     default="$(find rescue_jackal)/worlds/test_arena.world"/> -->
+  <!-- <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld3.world" /> -->
+  <!-- <arg name="world"     default="$(find ouster_description)/worlds/example.world" /> -->
+  <!-- <arg name="world"     default="$(find cpr_inspection_gazebo)/worlds/inspection_world.world" />
+  <param name="inspection_geom" command="$(find xacro)/xacro - -inorder '$(find cpr_inspection_gazebo)/urdf/inspection_geometry.urdf.xacro'" />-->
+  <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld_brick_texture2.world" />
+
+
+  <!-- Start Gazebo. -->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="verbose" value="true" />
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui"          value="$(arg gui)"/>
+    <!-- <arg name="world_name"   value="$(arg world)"/> -->
+    <arg name="debug" value="0" />
+    <arg name="headless" value="false" />
+  </include>
+  <!-- only for inspection_world 
+  <node name="inspection_world_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model inspection_geom -param inspection_geom -x 0 -y 0 -z 0 -Y 0" />-->
+
+  <!-- Load Jackal's description, controllers, and teleop nodes. -->
+  <include file="$(find jackal_description)/launch/description.launch">
+    <arg name="config" value="$(arg config)" />
+  </include>
+  <include file="$(find jackal_control)/launch/control.launch" />
+  <include file="$(find jackal_control)/launch/teleop.launch">
+    <arg name="joystick" value="false"/>
+  </include>
+
+  <!-- Spawn Jackal -->
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+	      args="-urdf -model jackal -param robot_description -x -2 -y -1.25 -z 0" />
+
+  <node ns="front" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
+      <remap from="left/image" to="left/image_raw"/>
+      <remap from="right/image" to="right/image_raw"/>
+  </node>
+
+  <!-- Publish tf 'base_footprint' as pose.-->
+  <node pkg="elevation_mapping_demos" type="tf_to_pose_publisher.py" name="pose_publisher">
+    <param name="from_frame" type="string" value="odom" />
+    <param name="to_frame"   type="string" value="base_link" />
+  </node>
+
+  <!-- Launch elevation mapping node. -->
+  <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="screen">
+    <rosparam command="load" file="$(find my_work_pkg)/robots/jackal_robot_after_rescue_robotics.yaml" />
+    <!-- "$(find rescue_jackal)/config/elevation_mapping/jackal_robot.yaml"
+         "$(find my_work_pkg)/robots/jackal_robot_after_rescue_robotics.yaml" -->
+    <!-- sensor_processors is defined in robot.yaml under inpud_sources instead
+    <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/perfect.yaml" /> -->
+    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/myGridmapFilters_postprocessing.yaml" />
+    <!-- "$(find elevation_mapping_demos)/config/postprocessing/postprocessor_pipeline.yaml" -->
+  </node>
+
+  <!-- Load visualisation and conversion of grid map. -->
+  <node pkg="grid_map_visualization" type="grid_map_visualization" name="elevation_map_fused_visualization" output="screen">
+    <param name="grid_map_topic" value="/elevation_mapping/elevation_map" />
+    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/visualize_fused.yaml" />
+  </node>
+  <node pkg="grid_map_visualization" type="grid_map_visualization" name="elevation_map_raw_visualization" output="screen">
+    <param name="grid_map_topic" value="/elevation_mapping/elevation_map_raw" />
+    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/visualize_raw.yaml" />
+  </node>
+
+  <node pkg="rescue_jackal" type="rescue_jackal_node" name="grid_to_image_republisher_node" output="screen" />
+
+
+  <!-- View in RVIZ. -->
+  <group if="$(arg rviz)">
+    <node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_work_pkg)/rviz/jackal_controller_zed_elevationMap.rviz" />
+    <!-- "-d $(find my_work_pkg)/rviz/jackal_controller_zed_elevationMap.rviz" -->
+    <!-- "-d $(find jackal_base)/rviz/jackal.rviz" -->
+    <!-- "-d $(find my_work_pkg)/rviz/myRVIZconfiguration_inpaintedRawElevation.rviz" -->
+  </group>
+
+</launch>

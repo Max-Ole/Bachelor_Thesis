@@ -1,0 +1,7 @@
+ouster_example/ouster_gazebo_plugins
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_gazebo_plugins/cmake.lock /home/ubuntu/Desktop/BA_MaxOle_ws/devel/./cmake.lock
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_gazebo_plugins/lib/libgazebo_ros_ouster_gpu_laser.so /home/ubuntu/Desktop/BA_MaxOle_ws/devel/lib/libgazebo_ros_ouster_gpu_laser.so
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_gazebo_plugins/lib/libgazebo_ros_ouster_laser.so /home/ubuntu/Desktop/BA_MaxOle_ws/devel/lib/libgazebo_ros_ouster_laser.so
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_gazebo_plugins/lib/pkgconfig/ouster_gazebo_plugins.pc /home/ubuntu/Desktop/BA_MaxOle_ws/devel/lib/pkgconfig/ouster_gazebo_plugins.pc
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_gazebo_plugins/share/ouster_gazebo_plugins/cmake/ouster_gazebo_pluginsConfig-version.cmake /home/ubuntu/Desktop/BA_MaxOle_ws/devel/share/ouster_gazebo_plugins/cmake/ouster_gazebo_pluginsConfig-version.cmake
+/home/ubuntu/Desktop/BA_MaxOle_ws/devel/.private/ouster_gazebo_plugins/share/ouster_gazebo_plugins/cmake/ouster_gazebo_pluginsConfig.cmake /home/ubuntu/Desktop/BA_MaxOle_ws/devel/share/ouster_gazebo_plugins/cmake/ouster_gazebo_pluginsConfig.cmake

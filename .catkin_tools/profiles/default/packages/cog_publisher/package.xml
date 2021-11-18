@@ -1,0 +1,72 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>cog_publisher</name>
+  <version>1.0.1</version>
+  <description>The cog_publisher package</description>
+
+  <!-- One maintainer tag required, multiple allowed, one person per tag -->
+  <maintainer email="ms.kataoka@gmail.com">Masaya Kataoka</maintainer>
+  <maintainer email="groadpg@gmail.com">Ryodo Tanaka</maintainer>
+
+
+  <!-- One license tag required, multiple allowed, one license per tag -->
+  <!-- Commonly used license strings: -->
+  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
+  <license>GPLv3</license>
+
+
+  <!-- Url tags are optional, but multiple are allowed, one per tag -->
+  <!-- Optional attribute type can be: website, bugtracker, or repository -->
+  <!-- Example: -->
+  <!-- <url type="website">http://wiki.ros.org/cog_publisher</url> -->
+  <url type="bugtracker">https://github.com/OUXT-Polaris/cog_publisher/issues</url>
+  <url type="repository">https://github.com/OUXT-Polaris/cog_publisher</url>
+
+  <!-- Author tags are optional, multiple are allowed, one per tag -->
+  <!-- Authors do not have to be maintainers, but could be -->
+  <author email="ms.kataoka@gmail.com">Masaya Kataoka</author>
+  <author email="groadpg@gmail.com">Ryodo Tanaka</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>kdl_parser</build_depend>
+  <build_depend>kdl_conversions</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>tf2</build_depend>
+  <build_depend>tf2_ros</build_depend>
+  <build_depend>tf2_geometry_msgs</build_depend>
+  <build_depend>urdf</build_depend>
+  
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>kdl_parser</build_export_depend>
+  <build_export_depend>kdl_conversions</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>sensor_msgs</build_export_depend>
+  <build_export_depend>std_msgs</build_export_depend>
+  <build_export_depend>tf</build_export_depend>
+  <build_export_depend>tf2</build_export_depend>
+  <build_export_depend>tf2_ros</build_export_depend>
+  <build_export_depend>tf2_geometry_msgs</build_export_depend>
+  <build_export_depend>urdf</build_export_depend>
+  
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>kdl_parser</exec_depend>
+  <exec_depend>kdl_conversions</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>tf</exec_depend>
+  <exec_depend>tf2</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>tf2_geometry_msgs</exec_depend>
+  <exec_depend>urdf</exec_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

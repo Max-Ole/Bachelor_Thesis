@@ -1,0 +1,7 @@
+grid_map_visualizations:
+  - name: traversability_grid
+    type: occupancy_grid
+    params:
+     layer: slope
+     data_min: 0.500108991839
+     data_max: 0.500108991839

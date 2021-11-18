@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<launch>
+  
+  <!-- <arg name="config"    default="ouster" /> -->
+  <arg name="config"    default="front_bumblebee2" />  
+
+  <!-- Load Jackal's description, controllers, and teleop nodes. -->
+  <include file="$(find jackal_description)/launch/description.launch">
+    <arg name="config" value="$(arg config)" />
+  </include>
+
+  <!-- <include file="$(find jackal_control)/launch/control.launch" />
+  <include file="$(find jackal_control)/launch/teleop.launch">
+    <arg name="joystick" value="false"/>
+  </include>
+
+  Spawn Jackal
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
+	      args="-urdf -model jackal -param robot_description -x -2 -y -1.25 -z 0" /> -->
+
+
+  <!-- Publish tf 'base_footprint' as pose.
+  <node pkg="elevation_mapping_demos" type="tf_to_pose_publisher.py" name="pose_publisher">
+    <param name="from_frame" type="string" value="odom" />
+    <param name="to_frame"   type="string" value="base_link" />
+  </node>-->
+
+  <!-- View in RVIZ. -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_work_pkg)/rviz/jackal_controller_zed_elevationMap.rviz" />
+  <!-- "-d $(find my_work_pkg)/rviz/jackal_controller_zed_elevationMap.rviz" -->
+  <!-- "-d $(find jackal_base)/rviz/jackal.rviz" -->
+  <!-- "-d $(find my_work_pkg)/rviz/myRVIZconfiguration_inpaintedRawElevation.rviz" -->
+
+
+</launch>
