@@ -44,8 +44,8 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: edges
-       lower_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
-       set_to: 0.0
+       lower_threshold: 1.0 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       set_to: .nan
 
   # Set upper threshold of slope, keeps only steep slopes
    - name: steep_slope_thresholded2
@@ -53,28 +53,19 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: edges
-       upper_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       upper_threshold: 1.0 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
        set_to: 1.0
 
 
   ### apply limits to data
   # get limit by thresholding slope. Set untraversible parts to 1. 
-   - name: limit_slope1
+   - name: limit_slope
      type: gridMapFilters/ThresholdFilter
      params:
        condition_layer: slope
        output_layer: limit_slope
        upper_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
        set_to: 1.0
-
-  # get limit by thresholding slope. Set traversible parts to 0. 
-   - name: limit_slope2
-     type: gridMapFilters/ThresholdFilter
-     params:
-       condition_layer: slope
-       output_layer: limit_slope
-       lower_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
-       set_to: 0.0
 
   # get height in local region fpr egdes
    - name: edge_height
@@ -96,32 +87,23 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      type: gridMapFilters/DuplicationFilter
      params:
        input_layer: local_height_diff
-       output_layer: logic_local_height_diff
+       output_layer: big_local_height_diff
 
   # Set lower threshold of edge heights, keeps only heigh edges
-   - name: edge_height_threshold1
+   - name: edge_height_threshold
      type: gridMapFilters/ThresholdFilter
      params:
        condition_layer: local_height_diff
-       output_layer: logic_local_height_diff
+       output_layer: big_local_height_diff
        lower_threshold: 0.5 # !!! CUSTOM VALUE !!! edges below this height can be traversed
-       set_to: 1.0
-
-  # Set upper threshold of edge heights, keeps only heigh edges
-   - name: edge_height_threshold2
-     type: gridMapFilters/ThresholdFilter
-     params:
-       condition_layer: local_height_diff
-       output_layer: logic_local_height_diff
-       upper_threshold: 0.5 # !!! CUSTOM VALUE !!! edges below this height can be traversed
-       set_to: 0.0
+       set_to: .nan
 
   # height only necessary at edges
    - name: edge_calc
      type: gridMapFilters/MathExpressionFilter
      params:
-       output_layer: small_edge
-       expression: logic_local_height_diff .* edges
+       output_layer: limit_edge
+       expression: big_local_height_diff .* edges
 
 
   # merge limits
@@ -129,5 +111,13 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      type: gridMapFilters/MathExpressionFilter
      params:
        output_layer: limits_merged
-       expression: limit_slope .* (1-small_edge)
+       expression: limit_slope .* limit_edge
 
+  # minimum limit
+  # - name: min_limit
+  #   type: gridMapFilters/ThresholdFilter
+  #   params:
+  #     condition_layer: limits_merged
+  #     output_layer: limits_merged
+  #     upper_threshold: 1.0 # 
+  #     set_to: 1.0
