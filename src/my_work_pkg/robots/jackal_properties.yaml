@@ -2,23 +2,28 @@
 # mechanical:
 reference_frame_id: "base_link"
 
-center_of_gravity:             # distance of reference_frame_id to cog
+center_of_gravity:             # distance between reference_frame_id and cog
   x: 0.0147329362484
   y: 0.00176019942301
   z: 0.0664169344025
 
-wheel:                         # distance of reference_frame_id to contact point of ground and the neerest wheel to cog.
+wheel:                         # distance between reference_frame_id and the contact point of ground and the nearest wheel to cog.
   x: 0.131
   y: 0.187795
   z: -0.0635
 
-dist_cog_wheel:                # TODO: calc from wheel and center_of_gravity
+dist_cog_wheel:                # distance between center_of_gravity and closest wheel. TODO: calc automatically from wheel position and center_of_gravity
   x: 0.11626706375160001
   y: 0.18603480057698998
   z: 0.12991693440250002
 
+wheels_dist: 
+  x: 0.262                     # wheelbase
+  y: 0.37559                   # track
+  z: 0.0                       # lie in same plane
+
 acceleration_max:
-  x: 3.0                      # 20 m/s^2  # from $(find jackal_control)/config/control.yaml
+  x: 3.0                       # 20 m/s^2  # from $(find jackal_control)/config/control.yaml
   y: 0.0
   z: 0.0
 velocity_max:
@@ -26,8 +31,8 @@ velocity_max:
   y: 0.0
   z: 0.0
 
-motor_max_incline: 0.7 #?              # TODO: may also be calc from torque_max, weight and wheelradius
-slip_tolerance_max_incline: 0.7 #?     # max angle at which the silpage is within tolerance
+motor_max_incline: 0.7 #?              # TODO: may also be calc from torque_max, weight and wheel radius
+slip_tolerance_max_incline: 0.7 #?     # max angle at which the slippage is within tolerance
 
-#::
-ground_clearance: ""
+# edges::
+ground_clearance: 0.098 - 0.0345 # wheel_radius - wheel_vertical_offset

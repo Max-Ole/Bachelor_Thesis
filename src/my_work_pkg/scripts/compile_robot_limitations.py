@@ -8,45 +8,78 @@ from math import sqrt, atan, asin, degrees
 
 
 
+def calc_max_inclination(robot_config):
+	""" Calculates the maximal inclination for all axes that can safely be traversed with the given geometry and worst possible acceleration and trajectory. """
+	accel_max = max(robot_config['acceleration_max'][x], robot_config['acceleration_max'][y], robot_config['acceleration_max'][z])
+	maximal_alpha = -float('inf')
+	
+	for axis in [x,y,z]:
+		# project onto current axis ? 
+		# static(?) or dynamic(?)
+		accel = max(robot_config['acceleration_max'][axis], calc_max_dynamic_accel(robot_config, axis))
+		
+		# Center of gravity and acceleration
+		accel = robot_config['acceleration_max']
+		#cog = robot_config['center_of_gravity']
+		#wheel = robot_config['wheel']
+
+		l1 = robot_config['dist_cog_wheel'][axis]	# e.g. wheel[x] - cog[x]
+		h =  robot_config['dist_cog_wheel'][z]	# cog[z] - wheel[z]   # dist of ground to cog
+		a = accel[axis]
+		g = 9.81
+		b = sqrt(h**2 + l1**2)
+		gamma = atan(l1/h)
+
+		try:
+			alpha = gamma - asin( (a*h)/(g*b) )
+		except ValueError: # accelerating at max acceleration would tip robot regardless of inclination
+			print "ERROR: Robot seems inherently unstable. Please check the robot property values. E.g. the max acceleration could be too high.\n"
+			raise ValueError
+		if alpha<0.0: # max acceleration only doesn't tip robot if accelerating downhill
+			print "ERROR: Robot seems inherently unstable. Please check the robot property values. E.g. the max acceleration could be too high.\n"
+			raise ValueError
+		
+		# keep highest value
+		if alpha > maximal_alpha:
+			maximal_alpha = alpha
+	
+	return maximal_alpha
+
+
 def compile2limits(robot_config):
 	"""Compiles information about the robot to determine the limits of what obstacles can be traversed. """
 	## inclination max
 	angle_limits = []
-
-	# Center of gravity and acceleration
-	accel = robot_config['acceleration_max']
-	#cog = robot_config['center_of_gravity']
-	#wheel = robot_config['wheel']
-
-	# TODO loop all axes x,y,z
-
-	l1 = robot_config['dist_cog_wheel'][x]	# wheel[x] - cog[x]
-	h =  robot_config['dist_cog_wheel'][z]	# cog[z] - wheel[z]   # dist of ground to cog
-	a = accel[x]
-	g = 9.81
-	b = sqrt(h**2 + l1**2)
-	gamma = atan(l1/h)
-
-	try:
-		alpha1 = gamma - asin( (a*h)/(g*b) )
-	except ValueError: # accelerating at max acceleration would tip robot regardless of inclination
-		print "ERROR: Robot seems inherently unstable. Please check the robot property values. E.g. the max acceleration could be too high.\n"
-		raise ValueError
-	else:
-		if alpha1<0.0: # max acceleration only doesn't tip robot if accelerating downhill
-			print "ERROR: Robot seems inherently unstable. Please check the robot property values. E.g. the max acceleration could be too high.\n"
-			raise ValueError
-	angle_limits.append(alpha1)
-
+	
+	angle_limits.append(calc_max_inclination(robot_config))
+	
 	# motor stalling
 	angle_limits.append(robot_config['motor_max_incline'])
-
-	# slipage due to low friction
+	
+	# slippage due to low friction
 	angle_limits.append(robot_config['slip_tolerance_max_incline'])
-
-
+	
+	
 	robot_limits = {"incline": min(angle_limits)}
 	return robot_limits
+
+
+def calc_max_dynamic_accel(robot_config, axis):
+	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration
+v1 := wheel speed outer wheel
+v2 := v1*xi wheel speed inner wheel, as factor xi in [-1,1] of other wheel
+a = v1^2 / (2*wheels_track) * (1-xi^2) 
+Is maximal if v1=v_max and xi=0
+==> a_max = v_max^2 / (2*wheels_track) * 1 """
+	assert axis in {x,y,z}, "axis must be one of 'x', 'y' or 'z'."
+	# get highest v in direction perpendicular to given axes
+	v_max = max({robot_config['velocity_max'][xyz] for xyz in {x,y,z} if xyz!=axis})
+	
+	# distance of wheels in direction of axis
+	wheels_track = robot_config['wheels_track'][axis]
+	assert wheels_track != 0, "no centrifugal acceleration can be calculated. Wheel track is zero and robot should always tip over."
+	
+	return v_max**2 / (2*wheels_track)
 
 
 def get_robot_config():
@@ -77,7 +110,7 @@ def write_limits_4occupancy(values):
   - name: traversability_grid
     type: occupancy_grid
     params:
-     layer: slope
+     layer: limits_merged
      data_min: <INCLINE_LIMIT>
      data_max: <INCLINE_LIMIT>"""
 	content = content.replace('<INCLINE_LIMIT>', str(values['incline']))
@@ -115,17 +148,14 @@ def main_program():
 	write_limits_4occupancy(robot_limits)
 
 
-x, y, z = 'x', 'y', 'z'
+x, y, z = 'x', 'y', 'z' # z is assumed to point up or downwards
 package = 'my_work_pkg'
 new_namespace = "/my_namespace_4_jackal_limits"
 
 if __name__ == '__main__':
 	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file.\n")
 	try:
-		#rospy.init_node('testrun_ramp_1m_turn')
 		rospack = rospkg.RosPack()
 		main_program()
-		#rospy.Timer(rospy.Duration(0.1), reguar_callback) # Set callback
-		#rospy.spin()
 	except rospy.ROSInterruptException:
 		pass
