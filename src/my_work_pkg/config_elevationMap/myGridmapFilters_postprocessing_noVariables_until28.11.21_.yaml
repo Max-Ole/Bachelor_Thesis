@@ -83,10 +83,13 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        input_layer: elevation
        output_layer: local_height_diff
        expression: max(elevation) - min(elevation) # get height of edge as max height difference in region around edge
+       # expression: meanOfFinites(elevation) # Box blur
+       # expression: sqrt(sumOfFinites(square(input - meanOfFinites(input))) ./ numberOfFinites(input)) # Standard deviation
+       # expression: 'sumOfFinites([0,-1,0;-1,5,-1;0,-1,0].*elevation_inpainted)' # Sharpen with kernel matrix
        compute_empty_cells: false
        edge_handling: crop # options: inside, crop, empty, mean
-       window_length: 0.1 # instead of window_size, in m
-       # window_size: 5 # in number of cells (optional, default: 3), make sure to make this compatible with the kernel matrix
+       window_size: 5 # in number of cells (optional, default: 3), make sure to make this compatible with the kernel matrix
+       # window_length: 0.05 # instead of window_size, in m
 
   # Duplicate slope layer.
    - name: duplicate_local_height_diff
@@ -101,7 +104,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: local_height_diff
        output_layer: logic_local_height_diff
-       lower_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       lower_threshold: 0.5 # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 1.0
 
   # Set upper threshold of edge heights, keeps only heigh edges
@@ -110,7 +113,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: local_height_diff
        output_layer: logic_local_height_diff
-       upper_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       upper_threshold: 0.5 # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 0.0
 
   # height only necessary at edges

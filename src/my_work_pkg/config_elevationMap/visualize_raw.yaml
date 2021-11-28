@@ -3,5 +3,5 @@ grid_map_visualizations:
     type: occupancy_grid
     params:
      layer: limits_merged
-     data_min: 0.500108991839
-     data_max: 0.500108991839
+     data_min: 0.5
+     data_max: 0.5

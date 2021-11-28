@@ -8,25 +8,51 @@ from math import sqrt, atan, asin, degrees
 
 
 
-def calc_max_inclination(robot_config):
-	""" Calculates the maximal inclination for all axes that can safely be traversed with the given geometry and worst possible acceleration and trajectory. """
-	accel_max = max(robot_config['acceleration_max'][x], robot_config['acceleration_max'][y], robot_config['acceleration_max'][z])
-	maximal_alpha = -float('inf')
+def compile2limits(robot_config):
+	"""Compiles information about the robot to determine the limits of what obstacles can be traversed. """
+	## inclination max
+	angle_limits = {'tipping over': float('inf'), \
+					'motor stalling': float('inf'), \
+					'slippage': float('inf') \
+					}
+	# tipping over
+	angle_limits['tipping over'] = calc_max_inclination(robot_config)
 	
-	for axis in [x,y,z]:
-		# project onto current axis ? 
-		# static(?) or dynamic(?)
-		accel = max(robot_config['acceleration_max'][axis], calc_max_dynamic_accel(robot_config, axis))
-		
-		# Center of gravity and acceleration
-		accel = robot_config['acceleration_max']
-		#cog = robot_config['center_of_gravity']
-		#wheel = robot_config['wheel']
+	# motor stalling
+	angle_limits['motor stalling'] = robot_config['motor_max_incline']
+	
+	# slippage due to low friction
+	angle_limits['slippage'] = robot_config['slip_tolerance_max_incline']
+	
+	## edge max
+	edge_limits = {'ground clearance': float('inf')}
+	# ground clearance
+	edge_limits['ground clearance'] = robot_config['ground_clearance']
+	# TODO add aufsetzen bei Rampe
+	
+	reason = min(angle_limits, key=lambda k: angle_limits[k])
+	print "The threat of {} ist the most restrictive for the highest safely traversible inclination.\n".format(reason)
+	robot_limits = {'slope': angle_limits[reason], 'edge':edge_limits['ground clearance']}
+	return robot_limits
 
+
+def calc_max_inclination(robot_config):
+	""" Calculates the maximal inclination for all axes that can safely be traversed with the given geometry and worst possible acceleration and trajectory.
+For each axis the inclination is found so that the robot just starts to tip over. That is the point where the moments around the tipping point (closest wheel) due to gravity and acceleration are equal. """
+	#accel_max = max( robot_config['acceleration_max'].values() )
+	critical_alpha = float('inf')
+	critical_axis = None
+	
+	for axis in [x,y]:
+		# Center of gravity and acceleration. static(?) or dynamic(?)
+		a = max(robot_config['acceleration_max'][axis], calc_max_dynamic_accel(robot_config, axis))
+		# distance from cog to closest wheel contact point
 		l1 = robot_config['dist_cog_wheel'][axis]	# e.g. wheel[x] - cog[x]
-		h =  robot_config['dist_cog_wheel'][z]	# cog[z] - wheel[z]   # dist of ground to cog
-		a = accel[axis]
+		# height of cog to ground
+		h =  robot_config['dist_cog_wheel'][z]	    # cog[z] - wheel[z]
+		# gravitational constant
 		g = 9.81
+		
 		b = sqrt(h**2 + l1**2)
 		gamma = atan(l1/h)
 
@@ -39,47 +65,36 @@ def calc_max_inclination(robot_config):
 			print "ERROR: Robot seems inherently unstable. Please check the robot property values. E.g. the max acceleration could be too high.\n"
 			raise ValueError
 		
-		# keep highest value
-		if alpha > maximal_alpha:
-			maximal_alpha = alpha
-	
-	return maximal_alpha
-
-
-def compile2limits(robot_config):
-	"""Compiles information about the robot to determine the limits of what obstacles can be traversed. """
-	## inclination max
-	angle_limits = []
-	
-	angle_limits.append(calc_max_inclination(robot_config))
-	
-	# motor stalling
-	angle_limits.append(robot_config['motor_max_incline'])
-	
-	# slippage due to low friction
-	angle_limits.append(robot_config['slip_tolerance_max_incline'])
-	
-	
-	robot_limits = {"incline": min(angle_limits)}
-	return robot_limits
+		# keep lowest, most critical value
+		print "Maximal safe inclination for axis {}: {}".format(axis, degrees(alpha))
+		if alpha < critical_alpha:
+			critical_alpha = alpha
+			critical_axis = axis
+		
+	print "The {}-axis is the most restrictive in terms of not tipping over due to center of gravity, stance, and acceleration.\n".format(critical_axis)
+	return critical_alpha
 
 
 def calc_max_dynamic_accel(robot_config, axis):
 	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration
 v1 := wheel speed outer wheel
 v2 := v1*xi wheel speed inner wheel, as factor xi in [-1,1] of other wheel
-a = v1^2 / (2*wheels_track) * (1-xi^2) 
+a = v1^2 / (2*wheels_dist) * (1-xi^2) 
 Is maximal if v1=v_max and xi=0
-==> a_max = v_max^2 / (2*wheels_track) * 1 """
+==> a_max = v_max^2 / (2*wheels_dist) * 1 """
 	assert axis in {x,y,z}, "axis must be one of 'x', 'y' or 'z'."
 	# get highest v in direction perpendicular to given axes
 	v_max = max({robot_config['velocity_max'][xyz] for xyz in {x,y,z} if xyz!=axis})
 	
 	# distance of wheels in direction of axis
-	wheels_track = robot_config['wheels_track'][axis]
-	assert wheels_track != 0, "no centrifugal acceleration can be calculated. Wheel track is zero and robot should always tip over."
-	
-	return v_max**2 / (2*wheels_track)
+	wheels_dist = robot_config['wheels_dist'][axis]
+	#assert wheels_dist != 0, "No centrifugal acceleration can be calculated in {} direction. Wheel track is zero and robot should always tip over.".format(axis)
+	if wheels_dist == 0:
+		print "No centrifugal acceleration can be calculated in {} direction. Wheel track is zero and robot should always tip over.".format(axis)
+		return float('inf')
+	else:
+		print "centrifugal acceleration in {}-direction: {}".format(axis, v_max**2 / (2*wheels_dist))
+		return v_max**2 / (2*wheels_dist)
 
 
 def get_robot_config():
@@ -105,7 +120,8 @@ def write_limits(values):
 		rosparam.dump_params(filename, new_namespace, verbose=False)
 
 
-def write_limits_4occupancy(values):
+def write_limits_occupancy(values):
+	"""Saves the compiled limits to a yaml file used by the grid_map_visualization node. The limits will be used as a threshold for an occupancy_grid. """
 	content = """grid_map_visualizations:
   - name: traversability_grid
     type: occupancy_grid
@@ -113,8 +129,23 @@ def write_limits_4occupancy(values):
      layer: limits_merged
      data_min: <INCLINE_LIMIT>
      data_max: <INCLINE_LIMIT>"""
-	content = content.replace('<INCLINE_LIMIT>', str(values['incline']))
+	content = content.replace('<INCLINE_LIMIT>', str(values['slope']))
 	with open(rospack.get_path(package)+"/config_elevationMap/visualize_raw.yaml", 'w') as f:
+		f.write(content)
+
+
+def write_limits_filter_chain(values):
+	"""Saves the compiled limits to a yaml file used by the elevation_mapping and grid_map node. The limits will be used as part of the filter chain that post-processes the elevation map."""
+	# reads the template and replaces placeholders ('<EDGE_INCLINE_THRESHOLD>','<SLOPE_LIMIT>','<MAX_SAFE_EDGE_HEIGHT>') with compiled limits
+	with open(rospack.get_path(package)+"/config_elevationMap/myGridmapFilters_postprocessing_template.yaml", 'r') as f:
+		content = f.read()
+	
+	content = content.replace('<SLOPE_LIMIT>', str(values['slope']))
+	content = content.replace('<EDGE_INCLINE_THRESHOLD>', str(values['slope'])) # TODO could be different than slope?
+	content = content.replace('<MAX_SAFE_EDGE_HEIGHT>', str(values['edge']))
+	
+	# save as filter chain
+	with open(rospack.get_path(package)+"/config_elevationMap/myGridmapFilters_postprocessing.yaml", 'w') as f:
 		f.write(content)
 
 
@@ -142,10 +173,11 @@ def main_program():
 	
 	robot_config = get_robot_config()
 	robot_limits = compile2limits(robot_config)
-	print "Compiled limits:"
-	print "incline =", degrees(robot_limits['incline']), 'degrees'
+	print "\nCompiled limits:"
+	print "incline =", degrees(robot_limits['slope']), 'degrees'
 	#write_limits(robot_limits)
-	write_limits_4occupancy(robot_limits)
+	#write_limits_occupancy(robot_limits)
+	write_limits_filter_chain(robot_limits)
 
 
 x, y, z = 'x', 'y', 'z' # z is assumed to point up or downwards

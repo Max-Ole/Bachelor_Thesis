@@ -44,7 +44,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: edges
-       lower_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       lower_threshold: <EDGE_INCLINE_THRESHOLD> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
        set_to: 0.0
 
   # Set upper threshold of slope, keeps only steep slopes
@@ -53,7 +53,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: edges
-       upper_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       upper_threshold: <EDGE_INCLINE_THRESHOLD> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
        set_to: 1.0
 
 
@@ -64,7 +64,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: limit_slope
-       upper_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
+       upper_threshold: <SLOPE_LIMIT> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
        set_to: 1.0
 
   # get limit by thresholding slope. Set traversible parts to 0. 
@@ -73,7 +73,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: limit_slope
-       lower_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
+       lower_threshold: <SLOPE_LIMIT> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
        set_to: 0.0
 
   # get height in local region fpr egdes
@@ -101,7 +101,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: local_height_diff
        output_layer: logic_local_height_diff
-       lower_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       lower_threshold: <MAX_SAFE_EDGE_HEIGHT> # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 1.0
 
   # Set upper threshold of edge heights, keeps only heigh edges
@@ -110,7 +110,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: local_height_diff
        output_layer: logic_local_height_diff
-       upper_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       upper_threshold: <MAX_SAFE_EDGE_HEIGHT> # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 0.0
 
   # height only necessary at edges

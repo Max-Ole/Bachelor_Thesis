@@ -20,7 +20,7 @@ dist_cog_wheel:                # distance between center_of_gravity and closest 
 wheels_dist: 
   x: 0.262                     # wheelbase
   y: 0.37559                   # track
-  z: 0.0                       # lie in same plane
+  z: 0.0                       # wheels have same height
 
 acceleration_max:
   x: 3.0                       # 20 m/s^2  # from $(find jackal_control)/config/control.yaml
@@ -35,4 +35,4 @@ motor_max_incline: 0.7 #?              # TODO: may also be calc from torque_max,
 slip_tolerance_max_incline: 0.7 #?     # max angle at which the slippage is within tolerance
 
 # edges::
-ground_clearance: 0.098 - 0.0345 # wheel_radius - wheel_vertical_offset
+ground_clearance: 0.0635 # wheel_radius - wheel_vertical_offset: 0.098-0.0345
