@@ -1,0 +1,137 @@
+postprocessor_pipeline: # set by postprocessor_pipeline_name
+
+  # Fill holes in the map with inpainting.
+   - name: inpaint
+     type: gridMapCv/InpaintFilter
+     params:
+       input_layer: elevation
+       output_layer: elevation_inpainted
+       radius: 0.1 #0.05
+
+  # Compute Surface normals
+   - name: surface_normals
+     type: gridMapFilters/NormalVectorsFilter
+     params:
+       input_layer: elevation_inpainted
+       output_layers_prefix: normal_vectors_
+       radius: 0.15 #0.05  radius must be > map resolution/2
+       normal_vector_positive_axis: z
+
+  # Compute the slope based of the surface normals.
+   - name: slope_calc
+     type: gridMapFilters/MathExpressionFilter
+     params:
+       output_layer: slope
+       expression: acos(normal_vectors_z)
+
+  # Duplicate slope layer.
+   - name: duplicate_slope
+     type: gridMapFilters/DuplicationFilter
+     params:
+       input_layer: slope
+       output_layer: edges
+
+  # Set lower threshold of slope, keeps only steep slopes
+   - name: steep_slope_thresholded1
+     type: gridMapFilters/ThresholdFilter
+     params:
+       condition_layer: slope
+       output_layer: edges
+       lower_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       set_to: 0.0
+
+  # Set upper threshold of slope, keeps only steep slopes
+   - name: steep_slope_thresholded2
+     type: gridMapFilters/ThresholdFilter
+     params:
+       condition_layer: slope
+       output_layer: edges
+       upper_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       set_to: 1.0
+
+  # get height in local region fpr egdes
+   - name: edge_height
+     type: gridMapFilters/SlidingWindowMathExpressionFilter
+     params:
+       input_layer: elevation
+       output_layer: local_height_diff
+       expression: max(elevation) - min(elevation) # get height of edge as max height difference in region around edge
+       compute_empty_cells: false
+       edge_handling: crop # options: inside, crop, empty, mean
+       window_length: 0.1 # instead of window_size, in m
+       # window_size: 5 # in number of cells (optional, default: 3), make sure to make this compatible with the kernel matrix
+
+  # Duplicate slope layer.
+   - name: duplicate_local_height_diff
+     type: gridMapFilters/DuplicationFilter
+     params:
+       input_layer: local_height_diff
+       output_layer: logic_local_height_diff
+
+  # Set lower threshold of edge heights, keeps only heigh edges
+   - name: edge_height_threshold1
+     type: gridMapFilters/ThresholdFilter
+     params:
+       condition_layer: local_height_diff
+       output_layer: logic_local_height_diff
+       lower_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       set_to: 1.0
+
+  # Set upper threshold of edge heights, keeps only heigh edges
+   - name: edge_height_threshold2
+     type: gridMapFilters/ThresholdFilter
+     params:
+       condition_layer: local_height_diff
+       output_layer: logic_local_height_diff
+       upper_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       set_to: 0.0
+
+  # height only necessary at edges
+   - name: edge_calc
+     type: gridMapFilters/MathExpressionFilter
+     params:
+       output_layer: small_edge
+       expression: logic_local_height_diff .* edges
+
+
+  # merge limits
+   - name: merge_limits
+     type: gridMapFilters/MathExpressionFilter
+     params:
+       output_layer: limits_merged
+       expression: slope .* (1-small_edge)
+
+
+# MATH:
+#given: 
+#b = sqrt(h**2 + l1**2)
+#gamma = atan(l1/h)
+
+#alpha: gamma - asin( (a*h)/(g*b) )
+#a: g*b/h * sin(gamma-alpha)
+#h: g*b/a * sin(gamma-alpha)
+#b: (a*h) / (g * sin(gamma-alpha))
+# alpha = slope
+
+  # acceleration
+   - name: calc_accel
+     type: gridMapFilters/MathExpressionFilter
+     params:
+       output_layer: a
+       expression: <g> * <b_4a> / <h_4a> * sin(<gamma_4a> - slope) #=g*b/h * sin(gamma-alpha) # constants are chosen conservatively, so that they result in the strictest limit
+  
+  # height of center of gravity
+   - name: cog_height
+     type: gridMapFilters/MathExpressionFilter
+     params:
+       output_layer: h
+       expression: <g> * <b_4h> / <a_4h> * sin(<gamma_4h> - slope)
+       
+  # stance witdh, distance from center of gravity to tire.
+   - name: stance
+     type: gridMapFilters/MathExpressionFilter
+     params:
+       output_layer: b
+       expression: (<a_4b> * <h_4b>) / (<g> * sin(<gamma_4b> - slope))
+  
+  # speed?
