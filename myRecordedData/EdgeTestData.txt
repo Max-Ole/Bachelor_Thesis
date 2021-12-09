@@ -1,0 +1,97 @@
+### Data Edge Test ###
+
+
+12.1 cm
+	no
+
+7.1 cm
+	up:		no
+	down:	yes
+
+6.1
+	up:		forwards yes (barely)/backwards no
+	down:	yes
+	
+	30 deg
+	up:		forwards yes (traj diverted to 0 deg); backwards no
+	down:	forwards/backwards yes	
+	
+	45 deg
+	up:		forwards no; backwards no
+	down:	forwards/backwards 	yes
+	
+	60 deg
+	up:		forwards no; backwards no
+	down:	forwards/backwards 	
+
+5.5 cm:
+	up:		forwards yes, backwards yes/no/yes/yes (very close)
+	down:	yes
+	
+	20 deg
+	up:		forwards/backwards yes
+	down:	forwards/backwards yes
+
+	45 deg
+	up:		forwards yes/no/no/no; backwards no
+	down:	forwards/backwards yes	
+	
+	60 deg
+	up:		forwards no; backwards no
+	down:	forwards/backwards yes	
+
+5 cm:
+	up:		forwards/backwards yes (barely)
+	down:	forwards/backwards yes
+	
+	20 deg
+	up:		forwards/backwards yes
+	down:	forwards/backwards yes
+	
+	30 deg
+	up:		forwards/backwards yes
+	down:	forwards/backwards yes
+	
+	40 deg
+	up:		forwards/backwards yes
+	down:	forwards/backwards yes
+	
+	45 deg
+	up:		forwards/backwards no
+	down:	forwards/backwards yes
+	
+	60 deg
+	up:		forwards/backwards no
+	down:	forwards/backwards yes
+	
+	70 deg 
+	up:		yes ?
+	down:	yes ?
+	
+
+4.5 cm:
+	up:		forwards/backwards yes
+	down:	forwards/backwards yes
+	
+	30 deg
+	up:		forwards yes; backwards yes
+	down:	forwards/backwards yes	
+	
+	45 deg
+	up:		forwards yes; backwards no
+	down:	forwards/backwards yes	
+	
+	60 deg
+	up:		forwards no; backwards no
+	down:	forwards/backwards yes	
+
+	
+4.0
+	up:		backwards yes
+	down:	backwards yes
+	
+3.9 cm
+	up:		backwards yes
+	down:	backwards yes
+	
+
