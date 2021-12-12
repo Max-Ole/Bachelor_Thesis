@@ -17,7 +17,7 @@ height_back_resting  = 0.375
 height_left_resting  = 0.254
 height_right_resting = 0.258
 
-# width and legth: distance between the edges the robot was tipped around
+# width and length: distance between the edges the robot was tipped around
 chassis_width = 0.310 # chassis_width from urdf
 chassis_length = 0.420 # chassis_length from urdf
 dist_measurement = 0.2 # distance of edge to base of height measurement
