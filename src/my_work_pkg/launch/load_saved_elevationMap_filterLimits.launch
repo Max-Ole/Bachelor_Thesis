@@ -63,14 +63,14 @@
     <!-- "$(find elevation_mapping_demos)/config/postprocessing/postprocessor_pipeline.yaml" -->
   </node>
 
-  <!-- Load visualisation and conversion of grid map. -->
+  <!-- Load visualisation and conversion of grid map. 
   <node pkg="grid_map_visualization" type="grid_map_visualization" name="elevation_map_fused_visualization" output="screen">
     <param name="grid_map_topic" value="/elevation_mapping/elevation_map" />
-    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/visualize_fused.yaml" />
-  </node>
+    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/visualize_fused_limitMap.yaml" />
+  </node>-->
   <node pkg="grid_map_visualization" type="grid_map_visualization" name="elevation_map_raw_visualization" output="screen">
     <param name="grid_map_topic" value="/elevation_mapping/elevation_map_raw" />
-    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/visualize_raw.yaml" />
+    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/visualize_raw_limitMap.yaml" />
   </node>
 
   <node pkg="rescue_jackal" type="rescue_jackal_node" name="grid_to_image_republisher_node" output="screen" />
