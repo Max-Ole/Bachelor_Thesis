@@ -14,6 +14,8 @@ import rospy
 import geometry_msgs.msg
 from geometry_msgs.msg import Twist
 from grid_map_msgs.msg import GridMap # type: grid_map_msgs/GridMap
+import GridMapHelper
+
 
 
 class MapLimitedController():
@@ -193,11 +195,11 @@ def main(args):
 	T_step_size = 0.2
 	rospy.init_node("map_limit_controller", anonymous=True)
 	
-	controller = MapLimitedController(T_step_size)
-	
+	#controller = MapLimitedController(T_step_size)
+	mapManager = GridMapHelper.GridMapHelper()
 	#try:
 	rospy.sleep(0.1)
-	rospy.Timer(rospy.Duration(T_step_size), controller.control_step) # Set regular callback
+	#rospy.Timer(rospy.Duration(T_step_size), controller.control_step) # Set regular callback
 	rospy.spin()
 	#except rospy.ROSInterruptException:
 	#	controller.plot_trajectory()
