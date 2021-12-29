@@ -28,10 +28,11 @@ def compile2limits(robot_config):
 	edge_limits = {'ground clearance': float('inf')}
 	# ground clearance
 	edge_limits['ground clearance'] = robot_config['ground_clearance']
-	# TODO add aufsetzen bei Rampe
+	# TODO add front or back of robot hitting ramp
 	
+	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
 	reason = min(angle_limits, key=lambda k: angle_limits[k])
-	print "The threat of {} ist the most restrictive for the highest safely traversible inclination.\n".format(reason)
+	print "The threat of {} ist the most restrictive for the highest safely traversable inclination.\n".format(reason)
 	robot_limits = {'slope': angle_limits[reason], 'edge':edge_limits['ground clearance']}
 	return robot_limits
 
