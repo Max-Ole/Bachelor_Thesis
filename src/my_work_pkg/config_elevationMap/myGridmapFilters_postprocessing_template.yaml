@@ -64,7 +64,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: limit_slope
-       upper_threshold: <SLOPE_LIMIT> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
+       upper_threshold: <SLOPE_LIMIT> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 1.0
 
   # get limit by thresholding slope. Set traversable parts to 0. 
@@ -73,7 +73,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: limit_slope
-       lower_threshold: <SLOPE_LIMIT> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
+       lower_threshold: <SLOPE_LIMIT> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 0.0
 
   #### INCLUDE BUFFERNORMLIZATIONFILTER
