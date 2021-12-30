@@ -18,7 +18,7 @@ def compile2limits(robot_config):
 	angle_limits['tipping over'] = max_incline_tipping(robot_config)
 	
 	# motor stalling
-	angle_limits['motor stalling'] = robot_config['motor_max_incline']
+	angle_limits['motor stalling'] = max_incline_torque(robot_config) #robot_config['motor_max_incline']
 	
 	# slippage due to low friction
 	angle_limits['slippage'] = robot_config['slip_tolerance_max_incline']
@@ -31,16 +31,16 @@ def compile2limits(robot_config):
 	
 	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
 	reason = min(angle_limits, key=lambda k: angle_limits[k])
-	print "The threat of {} ist the most restrictive for the highest safely traversable inclination.\n".format(reason)
+	print "\nThe threat of {} ist the most restrictive for the highest safely traversable inclination.\n".format(reason)
 	robot_limits = {'slope': angle_limits[reason], 'edge':edge_limits['ground clearance']}
 	return robot_limits
+
 
 def max_incline_torque(robot_config):
 	""" Calculates the maximal inclination that can safely be traversed with the given the robot's total motor torque, mass and wheel radius. 
 	Derived from: 
 	T = r*F where r and F are orthogonal and F=m*g*sin(alpha) is the force needed to hold the robot at the inclination alpha. """
-	# total motor torque
-	T = robot_config['torque'] # sum of torque of all motors
+	
 	# radius of driven wheels
 	r = robot_config['wheel_radius']
 	# mass
@@ -48,7 +48,23 @@ def max_incline_torque(robot_config):
 	# gravitational constant
 	g = 9.81
 	
+	# total motor torque. Read from file or calculate
+	try:
+		T = float(robot_config['torque']) # sum of torque of all motors
+	except (TypeError, ValueError):
+		# torque was not defined in the yaml file
+		# calculate torque from wattage, wheel radius and speed
+		W = robot_config['watt']
+		v_max = max(robot_config['velocity_max'].values())
+		T = float(r*W) / v_max
+		print("Calculating torque from wattage as no torque was provided: torque={}Nm".format(T))
+	
+	if abs( float(T) / (r*m*g) ) >=1:
+		print("The motor torque in this configuration (torque:{}Nm, mass:{}kg and wheel_radius:{}m) is enough to drive up a wall vertically. (Given that the tires interlock with the wall, of course)".format(round(T,3), round(m,3), round(r,3)))
+		return asin(1.0)
+		
 	return asin( float(T) / (r*m*g) )
+
 
 def max_incline_tipping(robot_config):
 	""" Calculates the maximal inclination for all axes that can safely be traversed with the given geometry and worst possible acceleration and trajectory.
@@ -59,7 +75,7 @@ For each axis the inclination is found so that the robot just starts to tip over
 	
 	for axis in [x,y]:
 		# Center of gravity and acceleration. static(?) or dynamic(?)
-		a = max(robot_config['acceleration_max'][axis], max_incline_tipping(robot_config, axis))
+		a = max(robot_config['acceleration_max'][axis], max_dynamic_accel(robot_config, axis))
 		# distance from cog to closest wheel contact point
 		l1 = robot_config['dist_cog_wheel'][axis]	# e.g. wheel[x] - cog[x]
 		# height of cog to ground

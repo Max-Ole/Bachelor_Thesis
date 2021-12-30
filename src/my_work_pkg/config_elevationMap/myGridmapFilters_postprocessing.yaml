@@ -8,7 +8,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        output_layer: elevation_inpainted
        radius: 0.1 #0.05
 
-  # Compute Surface normals
+  # Compute Surface normales
    - name: surface_normals
      type: gridMapFilters/NormalVectorsFilter
      params:
@@ -17,7 +17,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        radius: 0.15 #0.05  radius must be > map resolution/2
        normal_vector_positive_axis: z
 
-  # Compute the slope based of the surface normals.
+  # Compute the slope based of the surface normales.
    - name: slope_calc
      type: gridMapFilters/MathExpressionFilter
      params:
@@ -58,31 +58,35 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
 
 
   ### apply limits to data
-  # get limit by thresholding slope. Set untraversible parts to 1. 
+  # get limit by thresholding slope. Set untraversable parts to 1. 
    - name: limit_slope1
      type: gridMapFilters/ThresholdFilter
      params:
        condition_layer: slope
        output_layer: limit_slope
-       upper_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
+       upper_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 1.0
 
-  # get limit by thresholding slope. Set traversible parts to 0. 
+  # get limit by thresholding slope. Set traversable parts to 0. 
    - name: limit_slope2
      type: gridMapFilters/ThresholdFilter
      params:
        condition_layer: slope
        output_layer: limit_slope
-       lower_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversible
+       lower_threshold: 0.500108991839 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 0.0
 
-  # get height in local region fpr egdes
+  # normalize buffer for SlidingWindowMathExpressionFilter
+   - name: buffer_normalizer
+     type: gridMapFilters/BufferNormalizerFilter
+
+  # get height in local region for edges
    - name: edge_height
      type: gridMapFilters/SlidingWindowMathExpressionFilter
      params:
-       input_layer: elevation
+       input_layer: elevation_inpainted
        output_layer: local_height_diff
-       expression: max(elevation) - min(elevation) # get height of edge as max height difference in region around edge
+       expression: max(elevation_inpainted) - min(elevation_inpainted) # get height of edge as max height difference in region around edge
        compute_empty_cells: false
        edge_handling: crop # options: inside, crop, empty, mean
        window_length: 0.1 # instead of window_size, in m
@@ -95,7 +99,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        input_layer: local_height_diff
        output_layer: logic_local_height_diff
 
-  # Set lower threshold of edge heights, keeps only heigh edges
+  # Set lower threshold of edge heights, keeps only high edges
    - name: edge_height_threshold1
      type: gridMapFilters/ThresholdFilter
      params:
@@ -104,7 +108,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        lower_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 1.0
 
-  # Set upper threshold of edge heights, keeps only heigh edges
+  # Set upper threshold of edge heights, keeps only high edges
    - name: edge_height_threshold2
      type: gridMapFilters/ThresholdFilter
      params:

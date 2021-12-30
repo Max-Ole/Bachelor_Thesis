@@ -76,12 +76,9 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        lower_threshold: <SLOPE_LIMIT> #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 0.0
 
-  #### INCLUDE BUFFERNORMLIZATIONFILTER
-  # get height in local region for edges
-  # - name: edge_height
-  #   type: gridMapFilters/BufferNormalizationFilter
-  #   params:
-  #     input_layer: elevation_inpainted
+  # normalize buffer for SlidingWindowMathExpressionFilter
+   - name: buffer_normalizer
+     type: gridMapFilters/BufferNormalizerFilter
 
   # get height in local region for edges
    - name: edge_height
@@ -89,7 +86,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        input_layer: elevation_inpainted
        output_layer: local_height_diff
-       expression: max(elevation) - min(elevation) # get height of edge as max height difference in region around edge
+       expression: max(elevation_inpainted) - min(elevation_inpainted) # get height of edge as max height difference in region around edge
        compute_empty_cells: false
        edge_handling: crop # options: inside, crop, empty, mean
        window_length: 0.1 # instead of window_size, in m

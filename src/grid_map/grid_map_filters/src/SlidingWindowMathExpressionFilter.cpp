@@ -81,6 +81,7 @@ template<typename T>
 bool SlidingWindowMathExpressionFilter<T>::update(const T& mapIn, T& mapOut) // tried: (T& mapIn, T& mapOut)
 {
   grid_map::GridMap mapInCopy = mapIn; // copy map since given mapIn is const so startIndex can't be changed
+  if (!mapInCopy.isDefaultStartIndex()) ROS_INFO("Convolution: Converting Buffer to DefaultStartIndex.");
   mapInCopy.convertToDefaultStartIndex();
   mapOut = mapInCopy; // old: mapOut = mapIn;
 
