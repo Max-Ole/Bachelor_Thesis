@@ -197,9 +197,12 @@ def main(args):
 	
 	#controller = MapLimitedController(T_step_size)
 	mapManager = GridMapHelper.GridMapHelper()
+	plotter = GridMapHelper.SurfacePlotLive()
 	#try:
 	rospy.sleep(0.1)
-	#rospy.Timer(rospy.Duration(T_step_size), controller.control_step) # Set regular callback
+	#rospy.Timer(rospy.Duration(T_step_size), controller.control_step) # Set regular
+	# live plot grid map
+	rospy.Timer(rospy.Duration(0.5), plotter.drawNow, [mapManager, "elevation"]) # passing arg list
 	rospy.spin()
 	#except rospy.ROSInterruptException:
 	#	controller.plot_trajectory()
