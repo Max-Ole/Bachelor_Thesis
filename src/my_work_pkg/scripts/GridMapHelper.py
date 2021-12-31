@@ -7,11 +7,12 @@ Created on Wed Dec 22 2021
 Helper functions to use grid map with Python
 """
 import numpy as np
-from mpl_toolkits import mplot3d
+
 import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FixedLocator, FormatStrFormatter
+from mpl_toolkits import mplot3d
 import time
 import rospy
 import geometry_msgs.msg
@@ -24,11 +25,11 @@ class GridMapHelper:
 	def __init__(self):
 		self.mapSizeCells  = None
 		self.mapSizeMeters = None # From Message or Parameter server: /elevation_mapping/length_in_x, /elevation_mapping/length_in_y
-		self.mapRes = None        # From Message or Parameter server: /elevation_mapping/resolution
+		self.mapRes = None		# From Message or Parameter server: /elevation_mapping/resolution
 		self.mapPosition = None   # Position in [m] of map center in the frame from the header
 		self.mapOrientation = None# Orientation as Quaternion in the frame
-		self.frame = None         # frame_id
-		self.gmap = {}            # map data ordered as dict with layers as keys
+		self.frame = None		 # frame_id
+		self.gmap = {}			# map data ordered as dict with layers as keys
 		
 		self.sub = rospy.Subscriber("/elevation_mapping/elevation_map_raw", GridMap, self.recieveMap, queue_size=1)
 		
@@ -39,9 +40,9 @@ class GridMapHelper:
 		self.mapSizeMeters = (msg.info.length_x, msg.info.length_y)
 		self.mapSizeCells  = ( int(msg.info.length_x / msg.info.resolution), \
 							   int(msg.info.length_y / msg.info.resolution) )
-		self.mapPosition   = (msg.pose.position.x, msg.pose.position.y, msg.pose.position.z)
-		self.mapOrientation= (msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w)
-		self.frame         = msg.header.frame_id
+		self.mapPosition   = (msg.info.pose.position.x, msg.info.pose.position.y, msg.info.pose.position.z)
+		self.mapOrientation= (msg.info.pose.orientation.x, msg.info.pose.orientation.y, msg.info.pose.orientation.z, msg.info.pose.orientation.w)
+		self.frame		 = msg.info.header.frame_id
 		
 		# save all layers
 		for idx,l in enumerate(msg.layers):
@@ -53,24 +54,26 @@ class GridMapHelper:
 		print a
 		print 100.0 * float(a) / (self.mapSizeCells[0]*self.mapSizeCells[1])
 
-		print "at (0,0):  " + str(self.getCallValue('limit_slope', 80,80))
-		print "at (20,0): " + str(self.getCallValue('limit_slope', 20,0))
+		print "at (0,0):  " + str(self.getCellValue('elevation', 80,80))
+		print "at (20,0): " + str(self.getCellValue('elevation', 20,0))
 		
-		print "cellpos at (0,0):  " + str(self.pos2Cell(0,0))
+		print "cellpos at (0,0):  " + str(self.pos2Cell(0,0)) + "  with value: " + str(self.getCellValue('elevation', *self.pos2Cell(0,0)))
 		print "cellpos at (1,0):  " + str(self.pos2Cell(1,0))
 		print "cellpos at (0,1):  " + str(self.pos2Cell(0,1))
 		
 		#self.plotGridMap()
 		
-	def getCallValue(self, layer, cell_x, cell_y):
+	def getCellValue(self, layer, cell_x, cell_y):
 		""" read value of a given cell in a given layer"""
-		assert layer in self.gmap.keys(), "ERROR: The layer name given to given getCallValue does not exist. Correct spelling or verify initialization of map."
+		assert layer in self.gmap.keys(), "ERROR: The layer name given to given getCellValue does not exist. Correct spelling or verify initialization of map."
 		return self.gmap[layer][cell_x, cell_y]
 	
 	
 	# returns the cell the robot is in to its corresponding position
 	def pos2Cell(self, x_meter, y_meter):
-	
+		"""
+		cell[1] index increases as x position increases
+		cell[0] index increases as y position increases """
 		"""
 		vectorToOrigin = (0.5 * mapLength).matrix();
 		
@@ -112,8 +115,8 @@ class GridMapHelper:
 		y_cell = int(round( (x_meter + self.mapPosition[0]) / self.mapRes + self.mapSizeCells[0]/2) ) # same here
 
 		# clip so we do not get index out of bound errors
-		x_cell = self.clipVal(x, 0, self.mapSizeCells[0] - 1)
-		y_cell = self.clipVal(y, 0, self.mapSizeCells[1] - 1)
+		x_cell = self.clipVal(x_cell, 0, self.mapSizeCells[0] - 1)
+		y_cell = self.clipVal(y_cell, 0, self.mapSizeCells[1] - 1)
 
 		return x_cell, y_cell
 
@@ -160,37 +163,45 @@ class GridMapHelper:
 class SurfacePlotLive:
 	""" manages a surface plot that is updated live. Source: https://stackoverflow.com/questions/5179589/continuous-3d-plotting-i-e-figure-update-using-python-matplotlib """
 
-    def __init__( self, systemSideLength, lowerCutoffLength ):
+	def __init__( self, mapHelperObj, systemSideLength=8, lowerCutoffLength=-10 ):
 		""" setup surface plot """
 		matplotlib.interactive(True)
 		
-        self.systemSideLength = systemSideLength
-        self.lowerCutoffLength = lowerCutoffLength
-        self.fig = plt.figure()
-        self.ax = self.fig.add_subplot( 111, projection='3d' )
-        self.ax.set_zlim3d( -10e-9, 10e9 )
+		self.mapHelperObj = mapHelperObj
+		self.fig = plt.figure()
+		self.ax = self.fig.add_subplot( 111, projection='3d' )
+		self.ax.set_zlim3d( -10e-9, 10e9 )
 
-        rng = np.arange( 0, self.systemSideLength, self.lowerCutoffLength )
-        self.X, self.Y = np.meshgrid(rng,rng)
+		rng = np.arange( 0, systemSideLength, lowerCutoffLength )
+		while(self.mapHelperObj.mapSizeCells is None):
+			print("waiting for grid map")
+			pass
+		self.X, self.Y = np.meshgrid(list(range(self.mapHelperObj.mapSizeCells[0])), list(range(self.mapHelperObj.mapSizeCells[1])))
 
-        self.ax.w_zaxis.set_major_locator( LinearLocator( 10 ) )
-        self.ax.w_zaxis.set_major_formatter( FormatStrFormatter( '%.03f' ) )
+		self.ax.w_zaxis.set_major_locator( LinearLocator( 10 ) )
+		self.ax.w_zaxis.set_major_formatter( FormatStrFormatter( '%.03f' ) )
 
-        heightR = np.zeros( self.X.shape )
-        self.surf = self.ax.plot_surface( 
-            self.X, self.Y, heightR, rstride=1, cstride=1, 
-            cmap=cm.jet, linewidth=0, antialiased=False )
+		heightR = np.zeros( self.X.shape )
+		self.surf = self.ax.plot_surface( 
+			self.X, self.Y, heightR, rstride=1, cstride=1, 
+			cmap=cm.jet, linewidth=0, antialiased=False )
 
-	def updateMap(self, mapHelperObj, layer)
+	def updateMap(self, *args):#msg, mapHelperObj, layer):
 		""" gets data from grid map and plots it """
-		self.drawNow(mapHelperObj.gmap[layer])
+		#print(type(msg), type(mapHelperObj), type(layer))
+		#print msg
+		print "updateMap\n\n"
+		self.drawNow(self.mapHelperObj.gmap["elevation"])
 
-    def drawNow( self, heightR ):
+	def drawNow( self, heightR ):
 		""" update surface plot with new data """
-        self.surf.remove()
-        self.surf = self.ax.plot_surface( 
-            self.X, self.Y, heightR, rstride=1, cstride=1, 
-            cmap=cm.jet, linewidth=0, antialiased=False )
-        plt.draw() # redraw the canvas
+		print "\n\ndrawNow\n\n"
+		self.surf.remove()
+		self.surf = self.ax.plot_surface( 
+			self.X, self.Y, heightR, rstride=1, cstride=1, 
+			cmap=cm.jet, linewidth=0, antialiased=False )
+		plt.draw() # redraw the canvas
 		# might need fig.canvas.flush_events() here
-        plt.pause(0.01)
+		#self.fig.canvas.flush_events()
+		print "drawing"
+		plt.pause(0.1)

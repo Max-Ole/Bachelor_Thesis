@@ -7,6 +7,8 @@ Created on Wed Dec 15 14:52:08 2021
 Simulate a simple move-to-goal controller for a unicycle model
 subject to pose-varying control limits
 """
+import GridMapHelper
+
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,7 +16,7 @@ import rospy
 import geometry_msgs.msg
 from geometry_msgs.msg import Twist
 from grid_map_msgs.msg import GridMap # type: grid_map_msgs/GridMap
-import GridMapHelper
+
 
 
 
@@ -197,12 +199,12 @@ def main(args):
 	
 	#controller = MapLimitedController(T_step_size)
 	mapManager = GridMapHelper.GridMapHelper()
-	plotter = GridMapHelper.SurfacePlotLive()
+	#plotter = GridMapHelper.SurfacePlotLive(mapManager)
 	#try:
-	rospy.sleep(0.1)
+	rospy.sleep(0.5)
 	#rospy.Timer(rospy.Duration(T_step_size), controller.control_step) # Set regular
 	# live plot grid map
-	rospy.Timer(rospy.Duration(0.5), plotter.drawNow, [mapManager, "elevation"]) # passing arg list
+	#rospy.Timer(rospy.Duration(0.5), plotter.updateMap) # passing arg list
 	rospy.spin()
 	#except rospy.ROSInterruptException:
 	#	controller.plot_trajectory()
