@@ -45,7 +45,7 @@ class GridMapHelper:
 		self.markerPublisher = rospy.Publisher(topic, MarkerArray, queue_size=10)
 	
 	def goalpose_callback(self, goal_msg):		
-		""" Gets Position from Rviz """
+		""" Gets Position from Rviz. Rviz needs to have odom as fixed frame """
 		self.goal = (goal_msg.pose.position.x, goal_msg.pose.position.y)
 		print "\nGot goal position [m]: " + str(self.goal)
 		print "Corresponds to cell [idx]: " + str(self.pos2Cell(*self.goal))

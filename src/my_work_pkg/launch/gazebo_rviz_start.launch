@@ -48,12 +48,6 @@
       <remap from="right/image" to="right/image_raw"/>
   </node>
 
-  <!-- Publish tf 'base_footprint' as pose.-->
-  <node pkg="elevation_mapping_demos" type="tf_to_pose_publisher.py" name="pose_publisher">
-    <param name="from_frame" type="string" value="odom" />
-    <param name="to_frame"   type="string" value="base_link" />
-  </node>
-
   <!-- View in RVIZ. -->
   <group if="$(arg rviz)">
     <node name="rviz" pkg="rviz" type="rviz" args="-d $(find my_work_pkg)/rviz/jackal_controller_zed_elevationMap.rviz" />

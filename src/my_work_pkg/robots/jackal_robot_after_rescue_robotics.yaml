@@ -1,5 +1,5 @@
 # Robot.
-map_frame_id:                               odom
+map_frame_id:                               odom #map #odom
 robot_base_frame_id:                        base_link
 robot_pose_with_covariance_topic:           /base_link_pose # reallife /odometry/filtered # simulation /base_link_pose
 robot_pose_cache_size:                      200
@@ -7,7 +7,7 @@ robot_pose_cache_size:                      200
 # DEPRECATED # point_cloud_topic: "/points" or "/os1_cloud_node/points"
 input_sources:
     zedCamera_front: # A name to identify the input source
-      type: pointcloud # Supported types: pointcloud
+      type: pointcloud # Supported types are "pointcloud"
       topic: /front/points2 # reallife /zed_node/point_cloud/cloud_registered # simulation /front/points2
       queue_size: 3
       publish_on_update: true # Whether to publish the elevation map after a callback from this source.

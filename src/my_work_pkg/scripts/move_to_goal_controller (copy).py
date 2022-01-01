@@ -56,7 +56,7 @@ class MapLimitedController():
 		yaw[0] = 3*np.pi/2"""
 		
 	def goalpose_callback(self, goal_msg):		
-		""" Gets Position from Rviz """
+		""" Gets Position from Rviz. Rviz needs to have odom as fixed frame """
 		self.goal_x = goal_msg.pose.position.x
 		self.goal_y = goal_msg.pose.position.y
 		
