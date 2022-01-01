@@ -16,7 +16,13 @@ from mpl_toolkits import mplot3d
 import time
 import rospy
 import geometry_msgs.msg
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Point
 from grid_map_msgs.msg import GridMap # type: grid_map_msgs/GridMap
+from visualization_msgs.msg import Marker
+from visualization_msgs.msg import MarkerArray
 
 
 
@@ -31,11 +37,25 @@ class GridMapHelper:
 		self.frame = None		 # frame_id
 		self.gmap = {}			# map data ordered as dict with layers as keys
 		
-		self.sub = rospy.Subscriber("/elevation_mapping/elevation_map_raw", GridMap, self.recieveMap, queue_size=1)
-		
+		self.goal = None
+		rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goalpose_callback)
+		rospy.Subscriber("/elevation_mapping/elevation_map_raw", GridMap, self.recieveMap, queue_size=1)
+			
+		topic = 'visualization_marker_array'
+		self.markerPublisher = rospy.Publisher(topic, MarkerArray, queue_size=10)
+	
+	def goalpose_callback(self, goal_msg):		
+		""" Gets Position from Rviz """
+		self.goal = (goal_msg.pose.position.x, goal_msg.pose.position.y)
+		print "\nGot goal position [m]: " + str(self.goal)
+		print "Corresponds to cell [idx]: " + str(self.pos2Cell(*self.goal))
+		print "Elevation value is: " + str(self.getCellValue('elevation', *self.pos2Cell(*self.goal)))
+		print "limits_merged value is: " + str(self.getCellValue('limits_merged', *self.pos2Cell(*self.goal)))
+		print " "
+	
 	def recieveMap(self, msg):
 		# flip map
-		print("\ngot map:\n")
+		#print("\ngot map:\n")
 		self.mapRes = msg.info.resolution
 		self.mapSizeMeters = (msg.info.length_x, msg.info.length_y)
 		self.mapSizeCells  = ( int(msg.info.length_x / msg.info.resolution), \
@@ -51,7 +71,7 @@ class GridMapHelper:
 		
 		#### none nan value percentage of map layer
 		a = np.count_nonzero(~np.isnan(self.gmap['limit_slope']))
-		print a
+		"""print a
 		print 100.0 * float(a) / (self.mapSizeCells[0]*self.mapSizeCells[1])
 
 		print "at (0,0):  " + str(self.getCellValue('elevation', 80,80))
@@ -59,7 +79,7 @@ class GridMapHelper:
 		
 		print "cellpos at (0,0):  " + str(self.pos2Cell(0,0)) + "  with value: " + str(self.getCellValue('elevation', *self.pos2Cell(0,0)))
 		print "cellpos at (1,0):  " + str(self.pos2Cell(1,0))
-		print "cellpos at (0,1):  " + str(self.pos2Cell(0,1))
+		print "cellpos at (0,1):  " + str(self.pos2Cell(0,1))"""
 		
 		#self.plotGridMap()
 		
@@ -111,8 +131,8 @@ class GridMapHelper:
 		
 		# turning needed?
 		# mapPosition could be negative?
-		x_cell = int(round( (y_meter + self.mapPosition[1]) / self.mapRes + self.mapSizeCells[1]/2) ) # why here y in size for x?
-		y_cell = int(round( (x_meter + self.mapPosition[0]) / self.mapRes + self.mapSizeCells[0]/2) ) # same here
+		x_cell = int(round( (y_meter - self.mapPosition[1]) / self.mapRes + self.mapSizeCells[1]/2) ) # why here y in size for x?
+		y_cell = int(round( (x_meter - self.mapPosition[0]) / self.mapRes + self.mapSizeCells[0]/2) ) # same here
 
 		# clip so we do not get index out of bound errors
 		x_cell = self.clipVal(x_cell, 0, self.mapSizeCells[0] - 1)
@@ -127,7 +147,41 @@ class GridMapHelper:
 	def clipVal(self, val, min_val, max_val):
 		""" Keep value inside given bounds. Set value to nearest bound if it is outside. """
 		return  min_val if val < min_val  else max_val if val > max_val  else val
-		
+	
+	def visualizeMarkers(self, x, y):
+		"""
+		visualize the nodes as markers
+		"""
+		markerArray = MarkerArray()
+		marker = Marker()
+		marker.header.frame_id = "/map"
+		marker.type = marker.SPHERE
+		marker.action = marker.ADD
+		marker.scale.x = 0.1
+		marker.scale.y = 0.1
+		marker.scale.z = 0.1
+		marker.color.a = 1.0
+		marker.color.r = 1.0
+		marker.color.g = 1.0
+		marker.color.b = 0.0
+		marker.pose.orientation.w = 1.0
+		marker.pose.position.x = x
+		marker.pose.position.y = y
+		marker.pose.position.z = 0
+		markerArray.markers.append(marker)
+
+		# Renumber the marker IDs
+		id = 0
+		for m in markerArray.markers:
+			m.id = id
+			id += 1
+
+		# Publish the MarkerArray
+		self.markerPublisher.publish(markerArray)
+	
+	"""
+		Plotting
+	"""
 	def plotGridMap(self, ):
 		ax = plt.axes(projection ="3d")
 		 

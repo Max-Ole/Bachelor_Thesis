@@ -15,6 +15,10 @@ import matplotlib.pyplot as plt
 import rospy
 import geometry_msgs.msg
 from geometry_msgs.msg import Twist
+from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import PointStamped
+from geometry_msgs.msg import Pose
+from geometry_msgs.msg import Point
 from grid_map_msgs.msg import GridMap # type: grid_map_msgs/GridMap
 
 
@@ -22,16 +26,19 @@ from grid_map_msgs.msg import GridMap # type: grid_map_msgs/GridMap
 
 class MapLimitedController():
 
-	def __init__(self, T_step_size):
+	def __init__(self, T_step_size, mapManager):
 		# listeners	& publishers
-		self.sub = rospy.Subscriber("/elevation_mapping/elevation_map_raw", GridMap, self.receiveMap1)
+		rospy.Subscriber("/elevation_mapping/elevation_map_raw", GridMap, self.receiveMap1)
+		rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goalpose_callback)
+		
 		self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=2)
-		self.map1 = None 
+		
+		self.mapManager = mapManager
 
-		self.goal_x = 3.
-		self.goal_y = 4.
-		self.threshold = 0.05
 		self.dt = T_step_size
+		self.goal_x = None
+		self.goal_y = None
+		self.threshold = 0.05
 		#self.v_max = 0.5 # m/s
 		#self.w_max = 0.2 # rad/s
 		
@@ -47,6 +54,12 @@ class MapLimitedController():
 		x[0] = 1.0
 		y[0] = 1.0
 		yaw[0] = 3*np.pi/2"""
+		
+	def goalpose_callback(self, goal_msg):		
+		""" Gets Position from Rviz """
+		self.goal_x = goal_msg.pose.position.x
+		self.goal_y = goal_msg.pose.position.y
+		
 		
 	def control_step(self, msg):
 		"""Performs a control step. """		
@@ -71,17 +84,18 @@ class MapLimitedController():
 		Return the control limit, 
 		taken from the map in real scenario
 		"""
+		a_limit = self.mapManager.getCellValue('the limit layer', *self.mapManager.pos2Cell(x, y))
+		
+		# Try with service, in order to use pre written c++ methods
+		"""
 		rospy.wait_for_service('readMapCell')
 		try:
 			readMapCell = rospy.ServiceProxy('readMapCell', AddTwoInts)
 			resp1 = readMapCell(x, y)
 			return resp1.sum
 		except rospy.ServiceException as e:
-			print("Service call failed: %s"%e)
-			
-		print(len(self.map1))
-		print(len(self.map1[0]))
-		a_limit = self.map1[x][y]
+			print("Service call failed: %s"%e)"""
+		
 		return a_limit
 
 
@@ -121,40 +135,6 @@ class MapLimitedController():
 		command.linear.x = velocity
 		command.angular.z = yaw
 		self.pub.publish(command)
-		
-	def receiveMap1(self, msg):
-		"""Gets occupancy grid from ROS"""
-		# recieve map
-		print("-----")
-		print(type(msg))
-		print(dir(msg)) # Type GridMap
-		
-		print("-----")
-		print(type(msg.data))
-		print(dir(msg.data)) # Type List
-		
-		print("-----")
-		print(type(msg.data[0]))
-		print(dir(msg.data[0])) # Type Float32MultiArray
-		
-		print("-----")
-		print(type(msg.data[0].data))
-		print(dir(msg.data[0].data)) # Type Float32MultiArray
-		
-		print("-----")
-		print(type(msg.data[0].layout))
-		print(dir(msg.data[0].layout)) # Type Float32MultiArray
-		
-		
-		self.map1 = np.array(msg.data.data)
-		print(self.map1.shape)
-		print(self.map1[0].shape)
-		"""msg.info
-		resolution
-		width
-		height
-		origin"""
-		
 
 
 
@@ -197,8 +177,8 @@ def main(args):
 	T_step_size = 0.2
 	rospy.init_node("map_limit_controller", anonymous=True)
 	
-	#controller = MapLimitedController(T_step_size)
 	mapManager = GridMapHelper.GridMapHelper()
+	controller = MapLimitedController(T_step_size, mapManager)
 	#plotter = GridMapHelper.SurfacePlotLive(mapManager)
 	#try:
 	rospy.sleep(0.5)
