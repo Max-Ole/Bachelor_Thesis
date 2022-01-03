@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<launch>
+
+  <!--- Reduces stereo camera pointcloud to 2D. -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan_node" output="screen" >
+  	<remap from="cloud_in" to="/front/points2"/>  <!--- input topic: use zedCamera -->
+  	<remap from="scan" to="/front/scan/"/>  <!--- output topic  -->
+  	<param name="target_frame" value="front_camera"/>  <!--- need to change frame. Incoming pointcload has z-axis as front, but points are projected along z-axis! Transform frame to front_camera that has x-axis facing forward -->
+  	<rosparam>  <!--- angle min max: 66 degrees HFOV from bumblebee2 data sheet from https://flir.app.boxcn.net/s/5mlup95nnru5vcsczvtua19mtvznncfj/file/416921593192  -->
+      angle_min: -0.5759
+      angle_max: 0.5759
+      transform_tolerance: 0.01
+      min_height: -1.0
+      max_height: 2.0
+      angle_increment: 0.001
+      scan_time: 0.1
+      range_min: 1.0
+      range_max: 15.0
+      use_inf: true
+      concurrency_level: 0
+  </rosparam>
+  </node>
+
+
+  <!--- Run gmapping -->
+  <include file="$(find jackal_navigation)/launch/include/gmapping.launch">
+    <!--- use scan_topic from pointcloud_to_laserscan -->
+    <arg name="scan_topic" value="/front/scan/" />
+  </include>
+
+  <!--- Run Move Base -->
+ <include file="$(find jackal_navigation)/launch/include/move_base.launch" />
+
+</launch>

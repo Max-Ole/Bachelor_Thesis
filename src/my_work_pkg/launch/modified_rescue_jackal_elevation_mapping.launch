@@ -11,9 +11,9 @@
   <!-- <arg name="world"     default="$(find rescue_jackal)/worlds/test_arena.world"/> -->
   <!-- <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld3.world" /> -->
   <!-- <arg name="world"     default="$(find ouster_description)/worlds/example.world" /> -->
-  <!-- <arg name="world"     default="$(find cpr_inspection_gazebo)/worlds/inspection_world.world" />
-  <param name="inspection_geom" command="$(find xacro)/xacro - -inorder '$(find cpr_inspection_gazebo)/urdf/inspection_geometry.urdf.xacro'" />-->
-  <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld_brick_texture2.world" />
+  <!-- <arg name="world"     default="$(find cpr_inspection_gazebo)/worlds/inspection_world.world" /> -->
+      
+  <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld_brick_texture3_moreFriction.world" /> 
 
 
   <!-- Start Gazebo. -->
@@ -25,7 +25,8 @@
     <arg name="debug" value="0" />
     <arg name="headless" value="false" />
   </include>
-  <!-- only for inspection_world 
+  <!-- only for inspection_world. write "- -inorder" without whitespace, but with when commenting out 
+  <param name="inspection_geom" command="$(find xacro)/xacro - -inorder '$(find cpr_inspection_gazebo)/urdf/inspection_geometry.urdf.xacro'" />
   <node name="inspection_world_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model inspection_geom -param inspection_geom -x 0 -y 0 -z 0 -Y 0" />-->
 
   <!-- Load Jackal's description, controllers, and teleop nodes. -->
@@ -39,7 +40,7 @@
 
   <!-- Spawn Jackal -->
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model"
-	      args="-urdf -model jackal -param robot_description -x -2 -y -1.25 -z 0" />
+	      args="-urdf -model jackal -param robot_description -x 0 -y 0 -z 0" /> <!-- use -x 0 -y -15 -z 3 on inspection map -->
 
   <node ns="front" pkg="stereo_image_proc" type="stereo_image_proc" name="stereo_image_proc" output="screen">
       <remap from="left/image" to="left/image_raw"/>

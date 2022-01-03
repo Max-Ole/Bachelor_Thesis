@@ -2,12 +2,7 @@
 
 <launch>
 
-  <!-- Run the map server 
-  <arg name="map_file" default="$(find jackal_navigation)/maps/jackal_race.yaml"/>
-  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />-->
-  
-  <!--- NEED TO OCCUPANCY GRID  -->
-
+  <!--- Reduces stereo camera pointcloud to 2D. -->
   <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan_node" output="screen" >
   	<remap from="cloud_in" to="/front/points2"/>  <!--- input topic: use zedCamera -->
   	<remap from="scan" to="/front/scan/"/>  <!--- output topic  -->
@@ -58,7 +53,7 @@
 
 
   <!--- Run AMCL. modified from $(find jackal_navigation)/launch/include/amcl.launch -->
-  <include file="$(find my_work_pkg)/launch/amcl_node.launch">
+  <include file="$(find my_work_pkg)/launch/usecase/amcl_node.launch">
     <arg name="use_map_topic" value="true" />
     <!--- use scan_topic from pointcloud_to_laserscan -->
     <arg name="scan_topic" value="/front/scan/" />
