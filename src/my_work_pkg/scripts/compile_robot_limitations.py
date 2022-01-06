@@ -106,7 +106,11 @@ For each axis the inclination is found so that the robot just starts to tip over
 
 
 def max_dynamic_accel(robot_config, axis):
-	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration
+	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. Considers position of center of gravity (CoG) and an outer wheel. These need to be described in a frame such that the rotation centers x-value is 0. """
+
+def max_dynamic_accel(robot_config, axis):
+	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. 
+	Assumes the center of gravity is in the geometric center and simplifies robot as a 2 wheeled differential driven robot.
 v1 := wheel speed outer wheel
 v2 := v1*xi wheel speed inner wheel, as factor xi in [-1,1] of other wheel
 a = v1^2 / (2*wheels_dist) * (1-xi^2) 

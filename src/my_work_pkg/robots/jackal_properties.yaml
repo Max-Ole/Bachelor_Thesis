@@ -2,10 +2,10 @@
 # mechanical:
 #unused# reference_frame_id: "base_link"
 
-#unused# center_of_gravity:             # distance between reference_frame_id and cog
-#unused#   x: 0.0147329362484
-#unused#   y: 0.00176019942301
-#unused#   z: 0.0664169344025
+center_of_gravity:             # distance between reference_frame_id and cog
+  x: 0.0109                    # calculated from urdf file 0.0147329362484
+  y: -0.0033                   # calculated from urdf file 0.00176019942301
+  z: 0.1072                    # calculated from urdf file 0.0664169344025
 
 #unused# wheel:                         # distance between reference_frame_id and the contact point of ground and the nearest wheel to cog.
 #unused#   x: 0.131
@@ -37,7 +37,7 @@ wheel_radius: 0.098            # from urdf wheel_radius
 torque: None #24.5             # calculated from WheelRadius*Watt/MaxSpeed = 0.098*500/2 . 
                                # Is equal to Watt/rpm * 30/pi from MaxSpeed=2*pi*WheelRadius*RotationPerSec=2*pi*WheelRadius*rpm/60
 watt: 500                      # from data sheet as alternative to providing torque.
-
+minimal_turning_radius: 0.0    # For robots with limited turning capability. For tipping to the side we use the minimum of the radius for the worst trajectory and this minimal turning radius
 
 slip_tolerance_max_incline: 0.7 #?     # max angle at which the slippage is within tolerance
 
