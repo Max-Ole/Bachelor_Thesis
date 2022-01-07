@@ -1,7 +1,7 @@
 # Robot.
 map_frame_id:                               odom #map #odom
 robot_base_frame_id:                        base_link
-robot_pose_with_covariance_topic:           /base_link_pose # reallife /odometry/filtered # simulation /base_link_pose
+robot_pose_with_covariance_topic:           /base_link_pose # reallife /odometry/filtered # simulation /base_link_pose (from tf_to_pose_publisher.py which just converts it from tf messages)
 robot_pose_cache_size:                      200
 
 # DEPRECATED # point_cloud_topic: "/points" or "/os1_cloud_node/points"

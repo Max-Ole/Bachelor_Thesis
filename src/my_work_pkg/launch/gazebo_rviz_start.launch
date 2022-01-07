@@ -14,7 +14,8 @@
   <!-- <arg name="world"     default="$(find ouster_description)/worlds/example.world" /> -->
   <!-- <arg name="world"     default="$(find cpr_inspection_gazebo)/worlds/inspection_world.world" />
   <param name="inspection_geom" command="$(find xacro)/xacro - -inorder '$(find cpr_inspection_gazebo)/urdf/inspection_geometry.urdf.xacro'" />-->
-  <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld_brick_texture2.world" />
+  <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld_brick_texture3_moreFriction.world" /> 
+  <!-- <arg name="world"     default="$(find jackal_gazebo)/worlds/jackal_race.world"/>-->
 
 
   <!-- Start Gazebo. -->

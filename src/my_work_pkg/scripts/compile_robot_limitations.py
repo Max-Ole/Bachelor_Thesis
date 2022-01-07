@@ -1,9 +1,10 @@
 #!/usr/bin/env python2
 
+import numpy as np
 import rospy
 import rosparam
 import rospkg
-from math import sqrt, atan, asin, degrees
+from math import sqrt, atan, asin, cos, degrees
 
 
 
@@ -107,8 +108,42 @@ For each axis the inclination is found so that the robot just starts to tip over
 
 def max_dynamic_accel(robot_config, axis):
 	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. Considers position of center of gravity (CoG) and an outer wheel. These need to be described in a frame such that the rotation centers x-value is 0. """
+	
+	assert axis in {x,y,z}, "axis must be one of 'x', 'y' or 'z'."
+	# get variables
+	v_max = max({robot_config['velocity_max'][xyz] for xyz in {x,y,z} if xyz!=axis}) # get highest v in direction perpendicular to given axes
+	if v_max < 0.001:
+		print("No centrifugal acceleration in {}-direction as robot can't move perpendicular to it".format(axis,))
+		return 0.0
+	
+	CoG_x = robot_config['center_of_gravity'][x]
+	CoG_y = robot_config['center_of_gravity'][y]
+	wheel1_x = robot_config['wheel'][x]
+	wheel1_y = robot_config['wheel'][y]
+	
+	# Define formulas
+	r_CoG     = lambda r_c: sqrt( (r_c + CoG_y)**2    + (CoG_x)**2    )
+	r_1       = lambda r_c: sqrt( (r_c + wheel1_y)**2 + (wheel1_x)**2 )
+	theta_CoG = lambda r_c: atan( float(CoG_x)    / (r_c + CoG_y)    )
+	theta_1   = lambda r_c: atan( float(wheel1_x) / (r_c + wheel1_y) )
+	
+	a_ges = lambda r_c: v_max**2 * r_CoG(r_c) / r_1(r_c)**2 * cos(theta_1(r_c))**2 * cos(theta_CoG(r_c))
+	
+	r_c_values   = np.linspace(0, 3, 3000)
+	a_ges_values = np.zeros(r_c_values.shape)
+	a_ges_max = -float('inf')
+	r_c_worst = None
+	for idx,i in enumerate(r_c_values):
+		a_ges_values[idx] = a_ges(i)
+		if a_ges_values[idx] > a_ges_max:
+			a_ges_max = a_ges_values[idx]
+			r_c_worst = i
 
-def max_dynamic_accel(robot_config, axis):
+	print "centrifugal acceleration in {}-direction is maximal at radius {} with value {}".format(axis, r_c_worst, a_ges_max)
+	return a_ges_max
+	
+
+def max_dynamic_accel_old(robot_config, axis):
 	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. 
 	Assumes the center of gravity is in the geometric center and simplifies robot as a 2 wheeled differential driven robot.
 v1 := wheel speed outer wheel

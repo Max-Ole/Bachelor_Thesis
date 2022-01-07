@@ -8,7 +8,7 @@ Added option for global_frame_id
 
   <arg name="use_map_topic" default="false"/>
   <arg name="scan_topic" default="$(eval optenv('JACKAL_LASER_TOPIC', 'front/scan'))" />
-  <arg name="global_frame_id" default="map"/>
+  <arg name="global_frame_id" default="/map"/>
 
   <node pkg="amcl" type="amcl" name="amcl">
     <param name="use_map_topic" value="$(arg use_map_topic)"/>

@@ -1,18 +1,18 @@
 postprocessor_pipeline: # set by postprocessor_pipeline_name
 
-  # Fill holes in the map with inpainting.
-   - name: inpaint
-     type: gridMapCv/InpaintFilter
-     params:
-       input_layer: elevation
-       output_layer: elevation_inpainted
-       radius: 0.1 #0.05
+  # Fill holes in the map with inpainting. Would be used in Filters named surface_normals and edge_height
+  # - name: inpaint
+  #   type: gridMapCv/InpaintFilter
+  #   params:
+  #     input_layer: elevation
+  #     output_layer: elevation_inpainted
+  #     radius: 0.1 #0.05
 
   # Compute Surface normales
    - name: surface_normals
      type: gridMapFilters/NormalVectorsFilter
      params:
-       input_layer: elevation_inpainted
+       input_layer: elevation
        output_layers_prefix: normal_vectors_
        radius: 0.15 #0.05  radius must be > map resolution/2
        normal_vector_positive_axis: z
@@ -84,9 +84,9 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
    - name: edge_height
      type: gridMapFilters/SlidingWindowMathExpressionFilter
      params:
-       input_layer: elevation_inpainted
+       input_layer: elevation
        output_layer: local_height_diff
-       expression: max(elevation_inpainted) - min(elevation_inpainted) # get height of edge as max height difference in region around edge
+       expression: max(elevation) - min(elevation) # get height of edge as max height difference in region around edge
        compute_empty_cells: false
        edge_handling: crop # options: inside, crop, empty, mean
        window_length: 0.1 # instead of window_size, in m

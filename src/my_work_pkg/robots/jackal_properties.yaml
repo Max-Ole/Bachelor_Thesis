@@ -3,27 +3,39 @@
 #unused# reference_frame_id: "base_link"
 
 center_of_gravity:             # distance between reference_frame_id and cog
-  x: 0.0109                    # calculated from urdf file 0.0147329362484
-  y: -0.0033                   # calculated from urdf file 0.00176019942301
-  z: 0.1072                    # calculated from urdf file 0.0664169344025
+  x: 0.0109                    # old calculated from urdf file is 0.0147329362484
+  y: -0.0033                   # old calculated from urdf file is 0.00176019942301
+  z: 0.1072                    # old calculated from urdf file is 0.0664169344025
 
-#unused# wheel:                         # distance between reference_frame_id and the contact point of ground and the nearest wheel to cog.
-#unused#   x: 0.131
-#unused#   y: 0.187795
-#unused#   z: -0.0635
+wheel:                         # distance between reference_frame_id and wheel. Only one wheel as Jackal is symmetric
+  x: 0.131                     # from urdf wheelbase/2 value="0.262"/2
+  y: 0.187795                  # from urdf track/2 value="0.37559"/2
+  z: 0.0345                    # from urdf wheel_vertical_offset value="0.0345"
+wheel2:                        # not used yet
+  x: -0.131
+  y: 0.187795
+  z: 0.0345
+wheel3:                        # not used yet
+  x: 0.131
+  y: -0.187795
+  z: 0.0345
+wheel4:                        # not used yet
+  x: 0.131
+  y: -0.187795
+  z: 0.0345
 
 dist_cog_wheel:                # distance between center_of_gravity and closest wheel. TODO: calc automatically from wheel position and center_of_gravity
-  x: 0.11626706375160001
-  y: 0.18603480057698998
-  z: 0.12991693440250002
+  x: 0.1201
+  y: 0.184495
+  z: 0.1907                    # height of cog to ground; (wheel_radius=0.098) / 2 + wheel_z + CoG_z
 
 wheels_dist: 
-  x: 0.262                     # wheelbase
-  y: 0.37559                   # track
+  x: 0.262                     # from urdf wheelbase
+  y: 0.37559                   # from urdf track
   z: 0.0                       # wheels have same height
 
 acceleration_max:
-  x: 3.0                       # 20 m/s^2  # from $(find jackal_control)/config/control.yaml
+  x: 2.0                       # 20 m/s^2  # from $(find jackal_control)/config/control.yaml but that's impossible
   y: 0.0
   z: 0.0
 velocity_max:
