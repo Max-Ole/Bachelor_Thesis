@@ -32,7 +32,7 @@ def compile2limits(robot_config):
 	
 	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
 	reason = min(angle_limits, key=lambda k: angle_limits[k])
-	print "\nThe threat of {} ist the most restrictive for the highest safely traversable inclination.\n".format(reason)
+	print "\nThe threat of {} is the most restrictive for the highest safely traversable inclination.\n".format(reason)
 	robot_limits = {'slope': angle_limits[reason], 'edge':edge_limits['ground clearance']}
 	return robot_limits
 
@@ -110,7 +110,7 @@ def max_dynamic_accel(robot_config, axis):
 	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. Considers position of center of gravity (CoG) and an outer wheel. These need to be described in a frame such that the rotation centers x-value is 0. """
 	
 	assert axis in {x,y,z}, "axis must be one of 'x', 'y' or 'z'."
-	# get variables
+	# get variables from yaml
 	v_max = max({robot_config['velocity_max'][xyz] for xyz in {x,y,z} if xyz!=axis}) # get highest v in direction perpendicular to given axes
 	if v_max < 0.001:
 		print("No centrifugal acceleration in {}-direction as robot can't move perpendicular to it".format(axis,))
@@ -120,6 +120,7 @@ def max_dynamic_accel(robot_config, axis):
 	CoG_y = robot_config['center_of_gravity'][y]
 	wheel1_x = robot_config['wheel'][x]
 	wheel1_y = robot_config['wheel'][y]
+	minimal_turning_radius = robot_config['minimal_turning_radius']
 	
 	# Define formulas
 	r_CoG     = lambda r_c: sqrt( (r_c + CoG_y)**2    + (CoG_x)**2    )
@@ -129,6 +130,7 @@ def max_dynamic_accel(robot_config, axis):
 	
 	a_ges = lambda r_c: v_max**2 * r_CoG(r_c) / r_1(r_c)**2 * cos(theta_1(r_c))**2 * cos(theta_CoG(r_c))
 	
+	# find largest a_ges over range of r_c
 	r_c_values   = np.linspace(0, 3, 3000)
 	a_ges_values = np.zeros(r_c_values.shape)
 	a_ges_max = -float('inf')
@@ -138,8 +140,13 @@ def max_dynamic_accel(robot_config, axis):
 		if a_ges_values[idx] > a_ges_max:
 			a_ges_max = a_ges_values[idx]
 			r_c_worst = i
-
-	print "centrifugal acceleration in {}-direction is maximal at radius {} with value {}".format(axis, r_c_worst, a_ges_max)
+	
+	# regard minimal_turning_radius of robot. Might overwrite r_c and thus a_ges maximum
+	if r_c_worst < minimal_turning_radius:
+		r_c_worst = minimal_turning_radius
+		a_ges_max = a_ges(r_c_worst)
+		
+	print "Centrifugal acceleration in {}-direction is maximal at radius {} with value {}".format(axis, r_c_worst, a_ges_max)
 	return a_ges_max
 	
 
