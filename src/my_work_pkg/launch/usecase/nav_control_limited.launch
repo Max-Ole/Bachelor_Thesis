@@ -9,7 +9,7 @@
          "$(find my_work_pkg)/robots/jackal_robot_after_rescue_robotics.yaml" -->
     <!-- sensor_processors is defined in robot.yaml under inpud_sources instead
     <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/perfect.yaml" /> -->
-    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/myGridmapFilters_postprocessing.yaml" />
+    <rosparam command="load" file="$(find my_work_pkg)/config_elevationMap/myGridmapFilters_postprocessing_limitMap.yaml" />
     <!-- "$(find elevation_mapping_demos)/config/postprocessing/postprocessor_pipeline.yaml" -->
   </node>
   
@@ -56,7 +56,14 @@
   <node pkg="tf" type="static_transform_publisher" name="ZeroOdomMap" args="0 0 0 0 0 0 /map /odom 200" />
 
   <!--- Run Move Base -->
-  <include file="$(find jackal_navigation)/launch/include/move_base.launch" />
-
+  <include file="$(find my_work_pkg)/launch/usecase/move_base_node.launch" >
+    <arg name="control_output" default="cmd_vel_uncapped" />
+  </include>
+  
+  <!--- Run node to cap control output from cmd_vel_uncapped -->
+  <node pkg="my_work_pkg" type="control_output_cap.py" name="control_output_cap" output="screen">
+    <param name="control_input"   type="string" value="cmd_vel_uncapped" />
+    <param name="control_output"  type="string" value="cmd_vel" />
+  </node>
 
 </launch>

@@ -28,7 +28,7 @@ class MapLimitedController():
 
 	def __init__(self, T_step_size, mapManager):
 		# listeners	& publishers
-		rospy.Subscriber("/elevation_mapping/elevation_map_raw", GridMap, self.receiveMap1)
+
 		rospy.Subscriber("/move_base_simple/goal", PoseStamped, self.goalpose_callback)
 		
 		self.pub = rospy.Publisher('/cmd_vel', Twist, queue_size=2)
@@ -109,8 +109,8 @@ class MapLimitedController():
 		# calculate the different angle and normalize it into [-pi, pi]:
 		different_angle = np.arctan2(np.sin(yaw-yaw_ref), np.cos(yaw-yaw_ref))
 		
-		# a = (v1-v2) / T_s  <=>  v2 = v1 - a*T_s
-		vmax_from_amax = abs( old_v - amax*self.dt )
+		# a = (v2-v1) / dt  <=>  v2 = v1 + a*dt
+		vmax_from_amax = abs( old_v + amax*self.dt )
 		if d > self.threshold:
 			# angular velocity
 			w = - K_w * different_angle
