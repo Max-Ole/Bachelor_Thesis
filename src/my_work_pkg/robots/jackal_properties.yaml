@@ -11,15 +11,15 @@ wheel:                         # distance between reference_frame_id and wheel. 
   x: 0.131                     # from urdf wheelbase/2 value="0.262"/2
   y: 0.187795                  # from urdf track/2 value="0.37559"/2
   z: 0.0345                    # from urdf wheel_vertical_offset value="0.0345"
-wheel2:                        # not used yet
+wheel2:                        # not used yet as jackal is symmetric
   x: -0.131
   y: 0.187795
   z: 0.0345
-wheel3:                        # not used yet
+wheel3:                        # not used yet as jackal is symmetric
   x: 0.131
   y: -0.187795
   z: 0.0345
-wheel4:                        # not used yet
+wheel4:                        # not used yet as jackal is symmetric
   x: 0.131
   y: -0.187795
   z: 0.0345
@@ -35,7 +35,7 @@ wheels_dist:
   z: 0.0                       # wheels have same height
 
 acceleration_max:
-  x: 2.0                       # 20 m/s^2  # from $(find jackal_control)/config/control.yaml but that's impossible
+  x: 2.0                       # m/s^2  # 20m/s^2 from $(find jackal_control)/config/control.yaml but that's impossible
   y: 0.0
   z: 0.0
 velocity_max:
@@ -44,14 +44,15 @@ velocity_max:
   z: 0.0
 
 #unused# motor_max_incline: 0.7         # now obsolete as we calculate it from torque, weight and wheel radius
-mass: 25                       # mass in kg. Count in carry-ons like sensors or manipulated objects
+mass: 24                       # mass in kg. Measured with suitcase scale. Count in carry-ons like sensors or manipulated objects
 wheel_radius: 0.098            # from urdf wheel_radius
 torque: None #24.5             # calculated from WheelRadius*Watt/MaxSpeed = 0.098*500/2 . 
                                # Is equal to Watt/rpm * 30/pi from MaxSpeed=2*pi*WheelRadius*RotationPerSec=2*pi*WheelRadius*rpm/60
 watt: 500                      # from data sheet as alternative to providing torque.
 minimal_turning_radius: 0.0    # For robots with limited turning capability. For tipping to the side we use the minimum of the radius for the worst trajectory and this minimal turning radius
 
-slip_tolerance_max_incline: 0.7 #?     # max angle at which the slippage is within tolerance
+slip_tolerance_max_incline: 1.57 # =pi/2 to ignore this limit     # max angle at which the slippage is within tolerance
 
 # edges::
-ground_clearance: 0.0635 # wheel_radius - wheel_vertical_offset: 0.098-0.0345
+ground_clearance: 0.0635       # wheel_radius - wheel_vertical_offset equals 0.098-0.0345
+edge_max: 0.03                 # determined trough experiment (very conservative)

@@ -105,7 +105,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: local_height_diff
        output_layer: logic_local_height_diff
-       lower_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       lower_threshold: 0.03 # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 1.0
 
   # Set upper threshold of edge heights, keeps only high edges
@@ -114,7 +114,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: local_height_diff
        output_layer: logic_local_height_diff
-       upper_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       upper_threshold: 0.03 # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 0.0
 
   # height only necessary at edges

@@ -19,21 +19,21 @@ def compile2limits(robot_config):
 	angle_limits['tipping over'] = max_incline_tipping(robot_config)
 	
 	# motor stalling
-	angle_limits['motor stalling'] = max_incline_torque(robot_config) #robot_config['motor_max_incline']
+	angle_limits['motor stalling'] = max_incline_torque(robot_config) # previously robot_config['motor_max_incline']
 	
 	# slippage due to low friction
 	angle_limits['slippage'] = robot_config['slip_tolerance_max_incline']
 	
 	## edge max
-	edge_limits = {'ground clearance': float('inf')}
+	edge_limits = {'edge experiment': float('inf')}
 	# ground clearance
-	edge_limits['ground clearance'] = robot_config['ground_clearance']
+	edge_limits['edge experiment'] = robot_config['edge_max']
 	# TODO add front or back of robot hitting ramp
 	
 	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
 	reason = min(angle_limits, key=lambda k: angle_limits[k])
 	print "\nThe threat of {} is the most restrictive for the highest safely traversable inclination.\n".format(reason)
-	robot_limits = {'slope': angle_limits[reason], 'edge':edge_limits['ground clearance']}
+	robot_limits = {'slope': angle_limits[reason], 'edge':edge_limits['edge experiment']}
 	return robot_limits
 
 
@@ -150,8 +150,9 @@ def max_dynamic_accel(robot_config, axis):
 	return a_ges_max
 	
 
-def max_dynamic_accel_old(robot_config, axis):
-	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. 
+def max_dynamic_accel_legacy(robot_config, axis):
+	""" Same as max_dynamic_accel but needs more assumptions and is therefore less accurate.
+	Calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. 
 	Assumes the center of gravity is in the geometric center and simplifies robot as a 2 wheeled differential driven robot.
 v1 := wheel speed outer wheel
 v2 := v1*xi wheel speed inner wheel, as factor xi in [-1,1] of other wheel
@@ -217,7 +218,7 @@ def write_limits_filter_chain(values):
 		content = f.read()
 	
 	content = content.replace('<SLOPE_LIMIT>', str(values['slope']))
-	content = content.replace('<EDGE_INCLINE_THRESHOLD>', str(values['slope'])) # TODO could be different than slope?
+	content = content.replace('<EDGE_INCLINE_THRESHOLD>', str(values['slope'])) # possibility for extention: could be different than slope
 	content = content.replace('<MAX_SAFE_EDGE_HEIGHT>', str(values['edge']))
 	
 	# save as filter chain
