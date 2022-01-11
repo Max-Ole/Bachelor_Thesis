@@ -159,7 +159,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        output_layer: h
        expression: <g> * <b_4h> / <a_4h> * sin(<gamma_4h> - slope)
        
-  # stance witdh, distance from center of gravity to tire.
+  # stance width, distance from center of gravity to tire.
    - name: stance
      type: gridMapFilters/MathExpressionFilter
      params:
