@@ -6,7 +6,7 @@ import rospkg
 #import sys
 from math import sqrt, atan, asin, degrees
 
-from compile_robot_limitations import compile2limits
+from compile_robot_limitations import *
 
 
 

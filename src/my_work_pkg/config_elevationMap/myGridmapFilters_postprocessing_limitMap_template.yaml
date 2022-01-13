@@ -145,25 +145,32 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
 #b: (a*h) / (g * sin(gamma-alpha))
 # alpha = slope
 
+  # slope with small edges excluded
+   - name: merge_limits
+     type: gridMapFilters/MathExpressionFilter
+     params:
+       output_layer: slope_excludedEdges
+       expression: slope .* (1-small_edge)
+
   # acceleration
    - name: calc_accel
      type: gridMapFilters/MathExpressionFilter
      params:
        output_layer: a
-       expression: <g> * <b_4a> / <h_4a> * sin(<gamma_4a> - slope) #=g*b/h * sin(gamma-alpha) # constants are chosen conservatively, so that they result in the strictest limit
+       expression: <g> * <b_4a> / <h_4a> * sin(<gamma_4a> - slope_excludedEdges) #=g*b/h * sin(gamma-alpha) # constants are chosen conservatively, so that they result in the strictest limit
   
   # height of center of gravity
    - name: cog_height
      type: gridMapFilters/MathExpressionFilter
      params:
        output_layer: h
-       expression: <g> * <b_4h> / <a_4h> * sin(<gamma_4h> - slope)
+       expression: <g> * <b_4h> / <a_4h> * sin(<gamma_4h> - slope_excludedEdges)
        
   # stance width, distance from center of gravity to tire.
    - name: stance
      type: gridMapFilters/MathExpressionFilter
      params:
        output_layer: b
-       expression: (<a_4b> * <h_4b>) / (<g> * sin(<gamma_4b> - slope))
+       expression: (<a_4b> * <h_4b>) / (<g> * sin(<gamma_4b> - slope_excludedEdges))
   
   # speed?

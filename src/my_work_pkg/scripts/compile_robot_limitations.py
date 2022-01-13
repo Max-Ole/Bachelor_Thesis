@@ -25,15 +25,19 @@ def compile2limits(robot_config):
 	angle_limits['slippage'] = robot_config['slip_tolerance_max_incline']
 	
 	## edge max
-	edge_limits = {'edge experiment': float('inf')}
-	# ground clearance
-	edge_limits['edge experiment'] = robot_config['edge_max']
+	edge_limits = {'edge experiment': float('inf'), 'footprint': 0}
+	# must be smaller than ground clearance
+	edge_limits['edge experiment'] = min(robot_config['edge_max'], robot_config['ground_clearance'])
+	# The window in which edges are searched must surround the robot
+	edge_limits['footprint'] = min(robot_config['wheels_dist'][x], robot_config['wheels_dist'][y])
 	# TODO add front or back of robot hitting ramp
 	
 	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
 	reason = min(angle_limits, key=lambda k: angle_limits[k])
 	print "\nThe threat of {} is the most restrictive for the highest safely traversable inclination.\n".format(reason)
-	robot_limits = {'slope': angle_limits[reason], 'edge':edge_limits['edge experiment']}
+	robot_limits = {'slope': angle_limits[reason], \
+					'edge': edge_limits['edge experiment'], \
+					'footprint_for_edge_determination': edge_limits['footprint']}
 	return robot_limits
 
 
@@ -218,8 +222,9 @@ def write_limits_filter_chain(values):
 		content = f.read()
 	
 	content = content.replace('<SLOPE_LIMIT>', str(values['slope']))
-	content = content.replace('<EDGE_INCLINE_THRESHOLD>', str(values['slope'])) # possibility for extention: could be different than slope
+	content = content.replace('<EDGE_INCLINE_THRESHOLD>', str(values['slope'])) # possibility for extension: could be different than slope
 	content = content.replace('<MAX_SAFE_EDGE_HEIGHT>', str(values['edge']))
+	content = content.replace('<EDGE_FOOTPRINT>', str(values['footprint_for_edge_determination']))
 	
 	# save as filter chain
 	with open(rospack.get_path(package)+"/config_elevationMap/myGridmapFilters_postprocessing.yaml", 'w') as f:
