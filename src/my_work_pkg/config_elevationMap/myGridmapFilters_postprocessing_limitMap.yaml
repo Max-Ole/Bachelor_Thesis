@@ -44,7 +44,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: edges
-       lower_threshold: 0.388653026871 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       lower_threshold: 0.562032818619 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
        set_to: 0.0
 
   # Set upper threshold of slope, keeps only steep slopes
@@ -53,7 +53,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: edges
-       upper_threshold: 0.388653026871 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       upper_threshold: 0.562032818619 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
        set_to: 1.0
 
 
@@ -64,7 +64,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: limit_slope
-       upper_threshold: 0.388653026871 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
+       upper_threshold: 0.562032818619 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 1.0
 
   # get limit by thresholding slope. Set traversable parts to 0. 
@@ -73,7 +73,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: limit_slope
-       lower_threshold: 0.388653026871 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
+       lower_threshold: 0.562032818619 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 0.0
 
   # normalize buffer for SlidingWindowMathExpressionFilter
@@ -89,8 +89,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        expression: max(elevation) - min(elevation) # get height of edge as max height difference in region around edge
        compute_empty_cells: false
        edge_handling: crop # options: inside, crop, empty, mean
-       window_length: 0.1 # instead of window_size, in m
-       # window_size: 5 # in number of cells (optional, default: 3), make sure to make this compatible with the kernel matrix
+       window_length: 0.37559 #  !!! CUSTOM VALUE !!! in [m]. Must consider height of all edges underneath whole robot
 
   # Duplicate slope layer.
    - name: duplicate_local_height_diff
@@ -105,7 +104,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: local_height_diff
        output_layer: logic_local_height_diff
-       lower_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       lower_threshold: 0.03 # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 1.0
 
   # Set upper threshold of edge heights, keeps only high edges
@@ -114,7 +113,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: local_height_diff
        output_layer: logic_local_height_diff
-       upper_threshold: 0.0635 # !!! CUSTOM VALUE !!! edges below this height can be traversed
+       upper_threshold: 0.03 # !!! CUSTOM VALUE !!! edges below this height can be traversed
        set_to: 0.0
 
   # height only necessary at edges
@@ -145,25 +144,32 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
 #b: (a*h) / (g * sin(gamma-alpha))
 # alpha = slope
 
+  # slope with small edges excluded
+   - name: slope_edgeExcluded
+     type: gridMapFilters/MathExpressionFilter
+     params:
+       output_layer: slope_excludedEdges
+       expression: slope .* (1-small_edge)
+
   # acceleration
    - name: calc_accel
      type: gridMapFilters/MathExpressionFilter
      params:
        output_layer: a
-       expression: 9.81 * 0.225367477689 / 0.1907 * sin(0.562032818619 - slope) #=g*b/h * sin(gamma-alpha) # constants are chosen conservatively, so that they result in the strictest limit
+       expression: 9.81 * 0.225367477689 / 0.1907 * sin(0.562032818619 - slope_excludedEdges) #=g*b/h * sin(gamma-alpha) # constants are chosen conservatively, so that they result in the strictest limit
   
   # height of center of gravity
    - name: cog_height
      type: gridMapFilters/MathExpressionFilter
      params:
        output_layer: h
-       expression: 9.81 * 0.225367477689 / 2.0 * sin(0.562032818619 - slope)
+       expression: 9.81 * 0.225367477689 / 2.0 * sin(0.562032818619 - slope_excludedEdges)
        
-  # stance witdh, distance from center of gravity to tire.
+  # stance width, distance from center of gravity to tire.
    - name: stance
      type: gridMapFilters/MathExpressionFilter
      params:
        output_layer: b
-       expression: (2.0 * 0.1907) / (9.81 * sin(0.562032818619 - slope))
+       expression: (2.0 * 0.1907) / (9.81 * sin(0.562032818619 - slope_excludedEdges))
   
   # speed?

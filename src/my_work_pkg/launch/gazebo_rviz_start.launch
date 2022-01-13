@@ -9,13 +9,17 @@
   <arg name="config"    default="front_bumblebee2" />
   
   
-  <!-- <arg name="world"     default="$(find rescue_jackal)/worlds/test_arena.world"/> -->
-  <!-- <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld3.world" /> -->
-  <!-- <arg name="world"     default="$(find ouster_description)/worlds/example.world" /> -->
+  <!-- 
+  "$(find rescue_jackal)/worlds/test_arena.world"
+  "$(find my_work_pkg)/worlds/simpleWorld3.world"
+  "$(find ouster_description)/worlds/example.world"
+  "$(find jackal_gazebo)/worlds/jackal_race.world"
+  "/home/ubuntu/Desktop/multi_robot_exploration/worldspkg/worlds"
+  "$(find my_work_pkg)/worlds/simpleWorld_brick_texture3_moreFriction.world"
+  -->
   <!-- <arg name="world"     default="$(find cpr_inspection_gazebo)/worlds/inspection_world.world" />
   <param name="inspection_geom" command="$(find xacro)/xacro - -inorder '$(find cpr_inspection_gazebo)/urdf/inspection_geometry.urdf.xacro'" />-->
-  <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld_brick_texture3_moreFriction.world" /> 
-  <!-- <arg name="world"     default="$(find jackal_gazebo)/worlds/jackal_race.world"/>-->
+  <arg name="world"     default="$(find my_work_pkg)/worlds/simpleWorld_brick_texture3_moreFriction.world" />   
 
 
   <!-- Start Gazebo. -->

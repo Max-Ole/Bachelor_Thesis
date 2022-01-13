@@ -6,45 +6,68 @@ import rospkg
 #import sys
 from math import sqrt, atan, asin, degrees
 
-from compile_robot_limitations import *
+import compile_robot_limitations
 
 
+def compile_to_control_limits(robot_config):
+	"""Compiles information about the robot to determine the limits of what obstacles can be traversed. """
+	## inclination max
+	angle_limits = {'tipping over': float('inf'), \
+					'motor stalling': float('inf'), \
+					'slippage': float('inf') \
+					}
+	# tipping over
+	angle_limits['tipping over'] = max_incline_tipping_0accel(robot_config)
+	
+	# motor stalling
+	angle_limits['motor stalling'] = compile_robot_limitations.max_incline_torque(robot_config) # previously robot_config['motor_max_incline']
+	
+	# slippage due to low friction
+	angle_limits['slippage'] = robot_config['slip_tolerance_max_incline']
+	
+	## edge max
+	edge_limits = {'edge experiment': float('inf'), 'footprint': 0}
+	# must be smaller than ground clearance
+	edge_limits['edge experiment'] = min(robot_config['edge_max'], robot_config['ground_clearance'])
+	# The window in which edges are searched must surround the robot
+	edge_limits['footprint'] = max(robot_config['wheels_dist'][x], robot_config['wheels_dist'][y])
+	# TODO add front or back of robot hitting ramp
+	
+	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
+	reason = min(angle_limits, key=lambda k: angle_limits[k])
+	print "\nThe threat of {} is the most restrictive for the highest safely traversable inclination.\n".format(reason)
+	robot_limits = {'slope': angle_limits[reason], \
+					'edge': edge_limits['edge experiment'], \
+					'footprint_for_edge_determination': edge_limits['footprint']}
+	return robot_limits
 
-def max_dynamic_accel(robot_config, axis):
-	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. Considers position of center of gravity (CoG) and an outer wheel. These need to be described in a frame such that the rotation centers x-value is 0. """
-	
-	assert axis in {x,y,z}, "axis must be one of 'x', 'y' or 'z'."
-	# get variables
-	v_max = max({robot_config['velocity_max'][xyz] for xyz in {x,y,z} if xyz!=axis}) # get highest v in direction perpendicular to given axes
-	if v_max < 0.001:
-		print("No centrifugal acceleration in {}-direction as robot can't move perpendicular to it".format(axis,))
-		return 0.0
-	
-	CoG_x = robot_config['center_of_gravity'][x]
-	CoG_y = robot_config['center_of_gravity'][y]
-	wheel1_x = robot_config['wheel'][x]
-	wheel1_y = robot_config['wheel'][y]
-	
-	# Define formulas
-	r_CoG     = lambda r_c: sqrt( (r_c + CoG_y)**2    + (CoG_x)**2    )
-	r_1       = lambda r_c: sqrt( (r_c + wheel1_y)**2 + (wheel1_x)**2 )
-	theta_CoG = lambda r_c: atan( float(CoG_x)    / (r_c + CoG_y)    )
-	theta_1   = lambda r_c: atan( float(wheel1_x) / (r_c + wheel1_y) )
-	
-	a_ges = lambda r_c: v_max**2 * r_CoG(r_c) / r_1(r_c)**2 * cos(theta_1(r_c))**2 * cos(theta_CoG(r_c))
-	
-	r_c_values   = np.linspace(0, 3, 3000)
-	a_ges_values = np.zeros(r_c_values.shape)
-	a_ges_max = -float('inf')
-	r_c_worst = None
-	for idx,i in enumerate(r_c_values):
-		a_ges_values[idx] = a_ges(i)
-		if a_ges_values[idx] > a_ges_max:
-			a_ges_max = a_ges_values[idx]
-			r_c_worst = i
 
-	print "centrifugal acceleration in {}-direction is maximal at radius {} with value {}".format(axis, r_c_worst, a_ges_max)
-	return a_ges_max
+def max_incline_tipping_0accel(robot_config):
+	""" Calculates the maximal inclination for all axes that can safely be traversed with the given geometry and ZERO acceleration.
+For each axis the inclination is found so that the robot just starts to tip over. That is the point where the moments around the tipping point (closest wheel) due to gravity and acceleration are equal. 
+Formula as in max_incline_tipping but simplified with a=0
+alpha = gamma - asin( (a*h)/(g*b) )  ==> alpha = gamma = atan(l1/h)"""
+
+	#accel_max = max( robot_config['acceleration_max'].values() )
+	critical_alpha = float('inf')
+	critical_axis = None
+	
+	for axis in [x,y]:
+		# distance from cog to closest wheel contact point
+		l1 = robot_config['dist_cog_wheel'][axis]	# e.g. wheel[x] - cog[x]
+		# height of cog to ground
+		h =  robot_config['dist_cog_wheel'][z]	    # cog[z] - wheel[z]
+		
+		alpha = atan(l1/h) # =gamma
+		
+		# keep lowest, most critical value
+		print "Maximal safe inclination for axis {}: {}".format(axis, degrees(alpha))
+		if alpha < critical_alpha:
+			critical_alpha = alpha
+			critical_axis = axis
+		
+	print "The {}-axis is the most restrictive in terms of not tipping over in the static case.\n".format(critical_axis)
+	return critical_alpha
 
 
 def get_robot_config():
@@ -56,7 +79,7 @@ def get_robot_config():
 
 def write_limits_filter_chain(robot_config, values):
 	"""Saves the compiled limits to a yaml file used by the elevation_mapping and grid_map node. The limits will be used as part of the filter chain that post-processes the elevation map."""
-	# reads the template and replaces placeholders ('<EDGE_INCLINE_THRESHOLD>','<SLOPE_LIMIT>','<MAX_SAFE_EDGE_HEIGHT>') with compiled limits
+	# reads the template and replaces placeholders (e.g. '<EDGE_INCLINE_THRESHOLD>','<SLOPE_LIMIT>',...) with compiled limits
 	with open(rospack.get_path(package)+"/config_elevationMap/myGridmapFilters_postprocessing_limitMap_template.yaml", 'r') as f:
 		content = f.read()
 	
@@ -94,7 +117,7 @@ def write_limits_filter_chain(robot_config, values):
 	"""
 	axis = x ## try on single axis first
 	# Center of gravity and acceleration. static(?) or dynamic(?)
-	a = max(robot_config['acceleration_max'][axis], max_dynamic_accel(robot_config, axis))
+	a = max(robot_config['acceleration_max'][axis], compile_robot_limitations.max_dynamic_accel(robot_config, axis))
 	# distance from cog to closest wheel contact point
 	l = robot_config['dist_cog_wheel'][axis]	# e.g. wheel[x] - cog[x]
 	# height of cog to ground
@@ -115,6 +138,7 @@ def write_limits_filter_chain(robot_config, values):
 	content = content.replace('<SLOPE_LIMIT>', str(values['slope']))
 	content = content.replace('<EDGE_INCLINE_THRESHOLD>', str(values['slope'])) # TODO could be different than slope?
 	content = content.replace('<MAX_SAFE_EDGE_HEIGHT>', str(values['edge']))
+	content = content.replace('<EDGE_FOOTPRINT>', str(values['footprint_for_edge_determination']))
 	
 	# save as filter chain
 	with open(rospack.get_path(package)+"/config_elevationMap/myGridmapFilters_postprocessing_limitMap.yaml", 'w') as f:
@@ -125,7 +149,10 @@ def main_program():
 	""" Main function """
 	
 	robot_config = get_robot_config()
-	robot_limits = compile2limits(robot_config)
+	
+	# calc limits for fundamental obstacles. Obstacles regardless of behavior ==> static case of acceleration and speed are 0
+	robot_limits = compile_to_control_limits(robot_config)
+	
 	write_limits_filter_chain(robot_config, robot_limits)
 
 
@@ -134,7 +161,7 @@ package = 'my_work_pkg'
 
 
 if __name__ == '__main__':
-	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file.\n")
+	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file. \nHere we assume the BEST possible robot motion, because we assume a controller that can obey control limits we provide.")
 	try:
 		rospack = rospkg.RosPack()
 		main_program()

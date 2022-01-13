@@ -11,7 +11,7 @@ from copy import deepcopy
 
 class ControlCapClass():
 
-	def __init__(self, mapManager, control_input, control_output):
+	def __init__(self, mapManager, control_input, control_output, safetyMargin=0.3):
 		# listeners	& publishers
 		self.vel_pub = rospy.Publisher(control_output, Twist, queue_size=2)
 		rospy.Subscriber(control_input, Twist, self.cap_message)
@@ -20,18 +20,19 @@ class ControlCapClass():
 		self.mapManager = mapManager
 		self.control_input = control_input
 		self.control_output = control_output
+		self.safetyMargin = safetyMargin
 		
 		# init state variables
 		self.last_t = time.time()
 		self.last_v = 0
 		
 	def cap_message(self, msg):
-		""" receives a control command and caps it to the value from the limit layer in the grid map. 
+		""" receives a control command and caps it to the value from the limit layer in the grid map (some safety margin in %). 
 		We only regard the "manhatten"-velocity and acceleration, not the 2-norm, from the grid map as tipping is considered around the axes aka. sides of the robot """
 		command = deepcopy(msg)
 		
-		amax = self.mapManager.getCellValue('a', *self.mapManager.pos2Cell(self.mapManager.mapPosition[1], self.mapManager.mapPosition[0]))
-		vmax = 100 # self.mapManager.getCellValue('v', *self.mapManager.pos2Cell(self.mapManager.mapPosition[1], self.mapManager.mapPosition[0]))
+		amax = (1-self.safetyMargin) * self.mapManager.getCellValue('a', *self.mapManager.pos2Cell(self.mapManager.mapPosition[1], self.mapManager.mapPosition[0]))
+		vmax = (1-self.safetyMargin) * 100 # self.mapManager.getCellValue('v', *self.mapManager.pos2Cell(self.mapManager.mapPosition[1], self.mapManager.mapPosition[0]))
 		
 		# a = (v2-v1) / T_s  <=>  v2 = v1 + a*dt
 		dt = time.time() - self.last_t
@@ -94,7 +95,7 @@ if __name__ == '__main__':
 		control_output = rospy.get_param("~control_output")
 
 		mapManager = GridMapHelper.GridMapHelper()
-		capObj = ControlCapClass(mapManager, control_input, control_output)
+		capObj = ControlCapClass(mapManager, control_input, control_output, safetyMargin=0.3)
 		
 		rospy.spin()
 		

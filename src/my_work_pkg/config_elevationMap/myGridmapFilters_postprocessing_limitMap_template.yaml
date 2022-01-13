@@ -89,8 +89,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
        expression: max(elevation) - min(elevation) # get height of edge as max height difference in region around edge
        compute_empty_cells: false
        edge_handling: crop # options: inside, crop, empty, mean
-       window_length: 0.1 # instead of window_size, in m
-       # window_size: 5 # in number of cells (optional, default: 3), make sure to make this compatible with the kernel matrix
+       window_length: <EDGE_FOOTPRINT> #  !!! CUSTOM VALUE !!! in [m]. Must consider height of all edges underneath whole robot
 
   # Duplicate slope layer.
    - name: duplicate_local_height_diff
@@ -146,7 +145,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
 # alpha = slope
 
   # slope with small edges excluded
-   - name: merge_limits
+   - name: slope_edgeExcluded
      type: gridMapFilters/MathExpressionFilter
      params:
        output_layer: slope_excludedEdges

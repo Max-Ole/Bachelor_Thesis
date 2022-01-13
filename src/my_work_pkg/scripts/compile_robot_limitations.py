@@ -29,7 +29,7 @@ def compile2limits(robot_config):
 	# must be smaller than ground clearance
 	edge_limits['edge experiment'] = min(robot_config['edge_max'], robot_config['ground_clearance'])
 	# The window in which edges are searched must surround the robot
-	edge_limits['footprint'] = min(robot_config['wheels_dist'][x], robot_config['wheels_dist'][y])
+	edge_limits['footprint'] = max(robot_config['wheels_dist'][x], robot_config['wheels_dist'][y])
 	# TODO add front or back of robot hitting ramp
 	
 	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
@@ -267,7 +267,7 @@ package = 'my_work_pkg'
 new_namespace = "/my_namespace_4_jackal_limits"
 
 if __name__ == '__main__':
-	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file.\n")
+	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file. \nHere we assume the WORST possible robot motion.")
 	try:
 		rospack = rospkg.RosPack()
 		main_program()
