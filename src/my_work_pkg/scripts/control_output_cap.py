@@ -26,8 +26,12 @@ class ControlCapClass():
 		self.last_t = time.time()
 		self.last_v = 0
 		
+		# log
+		self.log = []
+		
+		
 	def cap_message(self, msg):
-		""" receives a control command and caps it to the value from the limit layer in the grid map (some safety margin in %). 
+		""" receives a control command and caps it to the value from the limit layer in the grid map (some safety margin in %).
 		We only regard the "manhatten"-velocity and acceleration, not the 2-norm, from the grid map as tipping is considered around the axes aka. sides of the robot """
 		command = deepcopy(msg)
 		
@@ -40,7 +44,7 @@ class ControlCapClass():
 		# need to satisfy both limits
 		v_limit_merged = float( min(vmax_from_amax, vmax) )
 		
-		if sum( [abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z)] ) > 0:
+		if sum( [abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z)] ) > 0.0001:
 			# w = v/r  <=>  r = v/w  <=>  v = w*r
 			# leave r as is, we do not want to change the robot's path. Also reduce velocity of all axes by the same factor
 			reduction_ratio = v_limit_merged / max(abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z))
@@ -48,11 +52,45 @@ class ControlCapClass():
 				# limits are not reached
 				# pass Twist command unaltered
 				self.vel_pub.publish(msg)
+				
+				# logging
+				self.logMotion( time.time(), \
+						"pass_through", \
+						command.linear.x, \
+						command.linear.y, \
+						command.linear.z, \
+						command.angular.x, \
+						command.angular.y, \
+						command.angular.z, \
+						msg.linear.x, \
+						msg.linear.y, \
+						msg.linear.z, \
+						msg.angular.x, \
+						msg.angular.y, \
+						msg.angular.z, \
+						)
 				return
 		else:
 			# velocity is zero, avoid division and
 			# pass Twist command unaltered
 			self.vel_pub.publish(msg)
+			
+			# logging
+			self.logMotion( time.time(), \
+						"zero_velocity", \
+						command.linear.x, \
+						command.linear.y, \
+						command.linear.z, \
+						command.angular.x, \
+						command.angular.y, \
+						command.angular.z, \
+						msg.linear.x, \
+						msg.linear.y, \
+						msg.linear.z, \
+						msg.angular.x, \
+						msg.angular.y, \
+						msg.angular.z, \
+						)
 			return
 		
 		assert reduction_ratio < 1, "ERROR: The reduction ratio ({}) when capping the control output should be smaller than 1".format(reduction_ratio)
@@ -83,7 +121,36 @@ class ControlCapClass():
 		
 		# publish capped control
 		self.vel_pub.publish(command)
-
+		
+		# logging
+		self.logMotion( time.time(), \
+						"capping", \
+						command.linear.x, \
+						command.linear.y, \
+						command.linear.z, \
+						command.angular.x, \
+						command.angular.y, \
+						command.angular.z, \
+						msg.linear.x, \
+						msg.linear.y, \
+						msg.linear.z, \
+						msg.angular.x, \
+						msg.angular.y, \
+						msg.angular.z, \
+						)
+		
+		
+	def logMotion(self, *args):
+		""" Logs the data in CSV format """
+		self.log.append(",".join([str(i) for i in args]))
+		
+		
+	def writeLog(self, filename):
+		""" Writes the logged date to disk """
+		outfile = open(filename, "w")
+		outfile.writelines(self.log)
+		print("Wrote log to "+filename+" .  "+str(len(self.log))+" lines.")
+		outfile.close()
 
 
 if __name__ == '__main__':
@@ -101,3 +168,6 @@ if __name__ == '__main__':
 		
 	except rospy.ROSInterruptException:
 		pass
+	finally:
+		capObj.writeLog( "/home/administrator/catkin_ws_Max-OleVW/src/my_work_pkg/scripts/log/logMotion_"+str(time.time())+".csv" )
+
