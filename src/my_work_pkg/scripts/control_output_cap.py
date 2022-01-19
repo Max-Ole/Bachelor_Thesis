@@ -27,7 +27,7 @@ class ControlCapClass():
 		self.last_v = 0
 		
 		# log
-		self.log = []
+		self.log = ["time: seconds_since_epoche, state (zero_velocity/pass_through/capping), command.linear.x, command.linear.y, command.linear.z, command.angular.x, command.angular.y, command.angular.z, msg.linear.x, msg.linear.y, msg.linear.z, msg.angular.x, msg.angular.y, msg.angular.z\n"]
 		
 		
 	def cap_message(self, msg):
@@ -142,7 +142,7 @@ class ControlCapClass():
 		
 	def logMotion(self, *args):
 		""" Logs the data in CSV format """
-		self.log.append(",".join([str(i) for i in args]))
+		self.log.append("\n" + ",".join([str(i) for i in args]))
 		
 		
 	def writeLog(self, filename):
