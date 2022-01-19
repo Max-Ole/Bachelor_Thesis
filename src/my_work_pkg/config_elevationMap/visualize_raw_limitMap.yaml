@@ -1,22 +1,29 @@
 grid_map_visualizations:
-  - name: traversability_limit_a
+  - name: fundamental_obstacles
     type: occupancy_grid
     params:
-     layer: a
+     layer: limits_merged
      data_min: 0.5
      data_max: 0.5
   
-  - name: traversability_limit_h
-    type: occupancy_grid
-    params:
-     layer: h
-     data_min: 0.5
-     data_max: 0.5
+#  - name: traversability_limit_a
+#    type: occupancy_grid
+#    params:
+#     layer: a
+#     data_min: 0.5
+#     data_max: 0.5
   
-  - name: traversability_limit_b
-    type: occupancy_grid
-    params:
-     layer: b
-     data_min: 0.5
-     data_max: 0.5
+#  - name: traversability_limit_h
+#    type: occupancy_grid
+#    params:
+#     layer: h
+#     data_min: 0.5
+#     data_max: 0.5
+  
+#  - name: traversability_limit_b
+#    type: occupancy_grid
+#    params:
+#     layer: b
+#     data_min: 0.5
+#     data_max: 0.5
 
