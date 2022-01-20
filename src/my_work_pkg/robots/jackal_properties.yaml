@@ -25,9 +25,9 @@ wheel4:                        # not used yet as jackal is symmetric
   z: 0.0345
 
 dist_cog_wheel:                # distance between center_of_gravity and closest wheel. TODO: calc automatically from wheel position and center_of_gravity
-  x: 0.1201
-  y: 0.184495
-  z: 0.1907                    # height of cog to ground; (wheel_radius=0.098) / 2 + wheel_z + CoG_z
+  x: 0.1201                    # 0.131 - CoG_x
+  y: 0.184495                  # abs(-0.187795 - CoG_y)
+  z: 0.1707                    # height of cog to ground; ground_clearance + CoG_z
 
 wheels_dist: 
   x: 0.262                     # from urdf wheelbase
