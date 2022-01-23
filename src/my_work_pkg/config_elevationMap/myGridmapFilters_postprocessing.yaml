@@ -44,7 +44,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: edges
-       lower_threshold: 0.388653026871 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       lower_threshold: 0.445598479294 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
        set_to: 0.0
 
   # Set upper threshold of slope, keeps only steep slopes
@@ -53,7 +53,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: edges
-       upper_threshold: 0.388653026871 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
+       upper_threshold: 0.445598479294 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered edges
        set_to: 1.0
 
 
@@ -64,7 +64,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: limit_slope
-       upper_threshold: 0.388653026871 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
+       upper_threshold: 0.445598479294 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 1.0
 
   # get limit by thresholding slope. Set traversable parts to 0. 
@@ -73,7 +73,7 @@ postprocessor_pipeline: # set by postprocessor_pipeline_name
      params:
        condition_layer: slope
        output_layer: limit_slope
-       lower_threshold: 0.388653026871 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
+       lower_threshold: 0.445598479294 #  !!! CUSTOM VALUE !!! slopes above this angle [rad] are considered untraversable
        set_to: 0.0
 
   # normalize buffer for SlidingWindowMathExpressionFilter
