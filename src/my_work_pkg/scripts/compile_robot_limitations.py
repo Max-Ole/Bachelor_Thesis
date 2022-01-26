@@ -4,13 +4,13 @@ import numpy as np
 import rospy
 import rosparam
 import rospkg
-from math import sqrt, atan, asin, cos, degrees
+from math import sqrt, tan, atan, asin, cos, degrees
 
 
 
 def compile2limits(robot_config):
 	"""Compiles information about the robot to determine the limits of what obstacles can be traversed. """
-	## inclination max
+	### inclination max
 	angle_limits = {'tipping over': float('inf'), \
 					'motor stalling': float('inf'), \
 					'slippage': float('inf') \
@@ -24,22 +24,39 @@ def compile2limits(robot_config):
 	# slippage due to low friction
 	angle_limits['slippage'] = robot_config['slip_tolerance_max_incline']
 	
-	## edge max
+	# TODO add front or back of robot hitting ramp
+	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
+	reason = min(angle_limits, key=lambda k: angle_limits[k])
+	print "\nThe threat of {} is the most restrictive for the highest safely traversable inclination.\n".format(reason)
+	
+	
+	### edge max
 	edge_limits = {'edge experiment': float('inf'), 'footprint': 0}
 	# must be smaller than ground clearance
 	edge_limits['edge experiment'] = min(robot_config['edge_max'], robot_config['ground_clearance'])
 	# The window in which edges are searched must surround the robot
-	edge_limits['footprint'] = max(robot_config['wheels_dist'][x], robot_config['wheels_dist'][y])
-	# TODO add front or back of robot hitting ramp
+	edge_limits['footprint'] = conv_window_size(robot_config, edge_limits['edge experiment'], angle_limits[reason])
 	
-	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
-	reason = min(angle_limits, key=lambda k: angle_limits[k])
-	print "\nThe threat of {} is the most restrictive for the highest safely traversable inclination.\n".format(reason)
+	
 	robot_limits = {'slope': angle_limits[reason], \
 					'edge': edge_limits['edge experiment'], \
 					'footprint_for_edge_determination': edge_limits['footprint']}
 	return robot_limits
 
+
+def conv_window_size(robot_config, e_lim, angle_lim):
+	""" Determines the windows size used by a convolution in the filter chain. There exist the following constraints:
+	- square
+	- as small as possible for precision
+	- at least the size of robot footprint
+	- large enough that no edges are found along a slope at inclination of the slope limit
+	"""
+	footprint_square = max(robot_config['wheels_dist'][x], robot_config['wheels_dist'][y])
+	c_lim = float(e_lim) / tan(angle_lim)
+	print("Convolution Window size is {} meters. It is the maximum of the footprint square ({} m) and the minimal size ({} m) due to the slope limit.".format(max(footprint_square, c_lim), footprint_square, c_lim))
+	
+	return max(footprint_square, c_lim)
+	
 
 def max_incline_torque(robot_config):
 	""" Calculates the maximal inclination that can safely be traversed with the given the robot's total motor torque, mass and wheel radius. 
@@ -267,7 +284,7 @@ package = 'my_work_pkg'
 new_namespace = "/my_namespace_4_jackal_limits"
 
 if __name__ == '__main__':
-	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file. \nHere we assume the WORST possible robot motion.")
+	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file. \nHere we assume the WORST possible robot motion.\n\n")
 	try:
 		rospack = rospkg.RosPack()
 		main_program()

@@ -43,6 +43,7 @@ class GridMapHelper:
 			
 		topic = 'visualization_marker_array'
 		self.markerPublisher = rospy.Publisher(topic, MarkerArray, queue_size=10)
+		print("GridMapHelper initialized")
 	
 	def goalpose_callback(self, goal_msg):		
 		""" Gets Position from Rviz. Rviz needs to have odom as fixed frame """
@@ -55,7 +56,7 @@ class GridMapHelper:
 	
 	def recieveMap(self, msg):
 		# flip map
-		#print("\ngot map:\n")
+		# print("\ngot map:\n")
 		self.mapRes = msg.info.resolution
 		self.mapSizeMeters = (msg.info.length_x, msg.info.length_y)
 		self.mapSizeCells  = ( int(msg.info.length_x / msg.info.resolution), \
@@ -182,11 +183,11 @@ class GridMapHelper:
 	"""
 		Plotting
 	"""
-	def plotGridMap(self, ):
+	def plotGridMap(self, layer='limit_slope'):
 		ax = plt.axes(projection ="3d")
 		 
 		X, Y = np.meshgrid(list(range(self.mapSizeCells[0])), list(range(self.mapSizeCells[1])))
-		ax.plot_surface(X, Y, self.gmap['limit_slope'], cmap=cm.coolwarm)
+		ax.plot_surface(X, Y, self.gmap[layer], cmap=cm.coolwarm)
 		plt.title("Grid Map Surface plot")
 
 		ax.set_xlabel('X Label')
@@ -195,11 +196,11 @@ class GridMapHelper:
 		plt.show()
 		time.sleep(1)
 
-	def plotGridMap_live_init(self, ):
+	def plotGridMap_live_init(self, layer='limit_slope'):
 		ax = plt.axes(projection ="3d")
 		 
 		X, Y = np.meshgrid(list(range(self.mapSizeCells[0])), list(range(self.mapSizeCells[1])))
-		ax.plot_surface(X, Y, self.gmap['limit_slope'], cmap=cm.coolwarm)
+		ax.plot_surface(X, Y, self.gmap[layer], cmap=cm.coolwarm)
 		plt.title("Grid Map Surface plot")
 
 		ax.set_xlabel('X Label')

@@ -39,7 +39,7 @@ acceleration_max:
   y: 0.0
   z: 0.0
 velocity_max:
-  x: 2.0                       # m/s  # from $(find jackal_control)/config/control.yaml and data sheet
+  x: 2.0                      # m/s  # from $(find jackal_control)/config/control.yaml and data sheet
   y: 0.0
   z: 0.0
 

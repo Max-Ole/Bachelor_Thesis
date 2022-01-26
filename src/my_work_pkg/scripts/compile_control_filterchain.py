@@ -5,13 +5,12 @@ import rosparam
 import rospkg
 #import sys
 from math import sqrt, atan, asin, degrees
-
 import compile_robot_limitations
 
 
 def compile_to_control_limits(robot_config):
 	"""Compiles information about the robot to determine the limits of what obstacles can be traversed. """
-	## inclination max
+	### inclination max
 	angle_limits = {'tipping over': float('inf'), \
 					'motor stalling': float('inf'), \
 					'slippage': float('inf') \
@@ -25,17 +24,20 @@ def compile_to_control_limits(robot_config):
 	# slippage due to low friction
 	angle_limits['slippage'] = robot_config['slip_tolerance_max_incline']
 	
-	## edge max
+	# TODO add front or back of robot hitting ramp
+	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
+	reason = min(angle_limits, key=lambda k: angle_limits[k])
+	print "\nThe threat of {} is the most restrictive for the highest safely traversable inclination.\n".format(reason)
+	
+	
+	### edge max
 	edge_limits = {'edge experiment': float('inf'), 'footprint': 0}
 	# must be smaller than ground clearance
 	edge_limits['edge experiment'] = min(robot_config['edge_max'], robot_config['ground_clearance'])
 	# The window in which edges are searched must surround the robot
-	edge_limits['footprint'] = max(robot_config['wheels_dist'][x], robot_config['wheels_dist'][y])
-	# TODO add front or back of robot hitting ramp
+	edge_limits['footprint'] = compile_robot_limitations.conv_window_size(robot_config, edge_limits['edge experiment'], angle_limits[reason])
 	
-	# return limit and output the reason for that limit aka. the most restrictive design choice for traversability.
-	reason = min(angle_limits, key=lambda k: angle_limits[k])
-	print "\nThe threat of {} is the most restrictive for the highest safely traversable inclination.\n".format(reason)
+	
 	robot_limits = {'slope': angle_limits[reason], \
 					'edge': edge_limits['edge experiment'], \
 					'footprint_for_edge_determination': edge_limits['footprint']}
@@ -83,40 +85,8 @@ def write_limits_filter_chain(robot_config, values):
 	with open(rospack.get_path(package)+"/config_elevationMap/myGridmapFilters_postprocessing_limitMap_template.yaml", 'r') as f:
 		content = f.read()
 	
-	"""
-	criticalVal = {'a':{'a':None, 'l':None, 'h':None}, 'l':{'a':None, 'l':None, 'h':None}, 'h':{'a':None, 'l':None, 'h':None}}
-	for axis in [x,y]:
-		# Center of gravity and acceleration. static(?) or dynamic(?)
-		a = max(robot_config['acceleration_max'][axis], max_dynamic_accel(robot_config, axis))
-		# distance from cog to closest wheel contact point
-		l = robot_config['dist_cog_wheel'][axis]	# e.g. wheel[x] - cog[x]
-		# height of cog to ground
-		h =  robot_config['dist_cog_wheel'][z]	    # cog[z] - wheel[z]
-		# gravitational constant
-		g = 9.81
-		
-		b = sqrt(h**2 + l1**2)
-		gamma = atan(l1/h)
-		
-		# TODO ????
-		# keep most critical value for the most restrictive
-		# keep the values that make the respective calculated value the safest
-		# e.g. most restrictive a means most dangerous l,h
-		if a < criticalVal['a']['a']: # smaller a is safer
-			criticalVal['a']['a'] = a
-			criticalVal['a']['l'] = l
-			criticalVal['a']['h'] = h
-		if l > criticalVal['l']['l']: # bigger l is safer
-			criticalVal['l']['a'] = a
-			criticalVal['l']['l'] = l
-			criticalVal['l']['h'] = h
-		if h < criticalVal['h']['h']: # smaller h is safer
-			criticalVal['h']['a'] = a
-			criticalVal['h']['l'] = l
-			criticalVal['h']['h'] = h
-	"""
 	axis = x ## try on single axis first
-	# Center of gravity and acceleration. static(?) or dynamic(?)
+	# Center of gravity and acceleration. max of static or dynamic
 	a = max(robot_config['acceleration_max'][axis], compile_robot_limitations.max_dynamic_accel(robot_config, axis))
 	# distance from cog to closest wheel contact point
 	l = robot_config['dist_cog_wheel'][axis]	# e.g. wheel[x] - cog[x]
@@ -161,7 +131,7 @@ package = 'my_work_pkg'
 
 
 if __name__ == '__main__':
-	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file. \nHere we assume the BEST possible robot motion, because we assume a controller that can obey control limits we provide.")
+	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file. \nHere we assume the BEST possible robot motion, because we assume a controller that can obey control limits we provide.\n\n")
 	try:
 		rospack = rospkg.RosPack()
 		main_program()
