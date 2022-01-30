@@ -1,28 +1,12 @@
 #!/usr/bin/env python
 
 import rospy
-import geometry_msgs.msg
-from nav_msgs.msg import Odometry # type: nav_msgs/Odometry
 from grid_map_msgs.msg import GridMap # type: grid_map_msgs/GridMap
 
 
 
-def sub_odom_callback(msg):
-	""" called trough subsriber """
-
-	#print("\nodom pose:\n", msg.pose.pose)
-
-	## Create and fill pose message for publishing
-	#pose = geometry_msgs.msg.PoseWithCovarianceStamped()
-	#pose.header.stamp = rospy.Time(0)
-	#pose.header.frame_id = from_frame
-	#pose.pose.pose.position.x = trans[0]
-	## publish
-	#publisher.publish(pose)
-
-
 def sub_elevation_callback(msg):
-	""" called trough subsriber """
+	""" called trough subscriber """
 	global recodedMsg1
 	#print("type:", type(msg))
 	#print("dir:", dir(msg))
@@ -31,7 +15,7 @@ def sub_elevation_callback(msg):
 		recodedMsg1 = msg
 
 def sub_elevation_raw_callback(msg):
-	""" called trough subsriber """
+	""" called trough subscriber """
 	global recodedMsg2
 	#print("type:", type(msg))
 	#print("dir:", dir(msg))
@@ -41,7 +25,7 @@ def sub_elevation_raw_callback(msg):
 
 
 def reguar_callback(msg):
-	""" Gets called regulary from rospy.Timer """
+	""" Gets called regularly from rospy.Timer """
 	global recodedMsg1, pub_elevation, recodedMsg2, pub_elevation_raw
 	if recodedMsg1:
 		pub_elevation.publish(recodedMsg1)
@@ -56,9 +40,8 @@ def main_program():
 		the ROS loop. """
 	global sub_odom, sub_elevation, pub, pub_elevation, pub_elevation_raw
 
-	print("This tool reads a single elevation_mapping Grid_map message (raw or fused) and repeats it indefinetly.\nThis is to display a bag file with a single message in rviz.")
-	# listeners	
-	#sub_odom = rospy.Subscriber("/odom", Odometry, sub_odom_callback) # sub_topic = "/odom", sub_msg_type = Odometry
+	print("This tool reads a single elevation_mapping Grid_map message (raw or fused) and repeats it indefinitely.\nThis is to display a bag file with a single message in rviz. Run this script and then play the rosbag. The single repeated and rviz can pick it up.")
+
 	sub_elevation = rospy.Subscriber("/elevation_mapping/elevation_map", GridMap, sub_elevation_callback)
 	sub_elevation_raw = rospy.Subscriber("/elevation_mapping/elevation_map_raw", GridMap, sub_elevation_raw_callback)
 
@@ -73,7 +56,7 @@ recodedMsg2 = False
 
 if __name__ == '__main__':
 	try:
-		rospy.init_node('test_elevation_map_interaction')
+		rospy.init_node('grid_map_repeater')
 		main_program()
 		rospy.Timer(rospy.Duration(0.5), reguar_callback) # Set callback
 		rospy.spin()

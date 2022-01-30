@@ -40,7 +40,7 @@ def reguar_callback(_):
 	if not initial_odom: return
 
 	if state=='climb1meter':
-		done = move_straight(50)
+		done = move_straight(0.8)
 		if done:
 			state = 'face_left'
 
