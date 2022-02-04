@@ -70,13 +70,6 @@ alpha = gamma - asin( (a*h)/(g*b) )  ==> alpha = gamma = atan(l1/h)"""
 		
 	print "The {}-axis is the most restrictive in terms of not tipping over in the static case.\n".format(critical_axis)
 	return critical_alpha
-
-
-def get_robot_config():
-	"""Loads a yaml file containing information about the robot."""
-	filename = rospack.get_path(package)+"/robots/jackal_properties.yaml"
-	robot_config = rosparam.load_file(filename, default_namespace=None, verbose=False)[0][0]
-	return robot_config
 	
 
 def write_limits_filter_chain(robot_config, values):
@@ -106,7 +99,7 @@ def write_limits_filter_chain(robot_config, values):
 	
 	# standard changes as in normal compile_robot_limitations.py
 	content = content.replace('<SLOPE_LIMIT>', str(values['slope']))
-	content = content.replace('<EDGE_INCLINE_THRESHOLD>', str(values['slope'])) # TODO could be different than slope?
+	content = content.replace('<EDGE_INCLINE_THRESHOLD>', str(values['slope'])) # Extension posibility: could be different than slope
 	content = content.replace('<MAX_SAFE_EDGE_HEIGHT>', str(values['edge']))
 	content = content.replace('<EDGE_FOOTPRINT>', str(values['footprint_for_edge_determination']))
 	
@@ -118,7 +111,7 @@ def write_limits_filter_chain(robot_config, values):
 def main_program():
 	""" Main function """
 	
-	robot_config = get_robot_config()
+	robot_config = compile_robot_limitations.get_robot_config()
 	
 	# calc limits for fundamental obstacles. Obstacles regardless of behavior ==> static case of acceleration and speed are 0
 	robot_limits = compile_to_control_limits(robot_config)

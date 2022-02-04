@@ -3,15 +3,21 @@
 import GridMapHelper
 
 import rospy
+import rospkg
 import time
 from geometry_msgs.msg import Twist
 from math import copysign, sqrt, isnan
 from copy import deepcopy
+from math import sqrt, tan, atan, asin, cos, degrees
+
+import compile_robot_limitations
 
 
 class ControlCapClass():
 
-	def __init__(self, mapManager, control_input, control_output, safetyMargin=0.3):
+	def __init__(self, mapManager, control_input, control_output, robot_config, safetyMargin=0.3):
+		self.robot_config = robot_config
+		
 		# listeners	& publishers
 		self.vel_pub = rospy.Publisher(control_output, Twist, queue_size=2)
 		rospy.Subscriber(control_input, Twist, self.cap_message)
@@ -36,7 +42,7 @@ class ControlCapClass():
 		command = deepcopy(msg)
 		
 		amax = (1-self.safetyMargin) * self.mapManager.getCellValue('a', *self.mapManager.pos2Cell(self.mapManager.mapPosition[1], self.mapManager.mapPosition[0]))
-		vmax = (1-self.safetyMargin) * 100 # self.mapManager.getCellValue('v', *self.mapManager.pos2Cell(self.mapManager.mapPosition[1], self.mapManager.mapPosition[0]))
+		vmax = (1-self.safetyMargin) * self.maxVelFromCentripetalAccel(msg, amax) # 100
 		
 		# a = (v2-v1) / T_s  <=>  v2 = v1 + a*dt
 		dt = time.time() - self.last_t
@@ -44,33 +50,7 @@ class ControlCapClass():
 		# need to satisfy both limits
 		v_limit_merged = float( min(vmax_from_amax, vmax) )
 		
-		if sum( [abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z)] ) > 0.0001:
-			# w = v/r  <=>  r = v/w  <=>  v = w*r
-			# leave r as is, we do not want to change the robot's path. Also reduce velocity of all axes by the same factor
-			reduction_ratio = v_limit_merged / max(abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z))
-			if reduction_ratio >= 1 or isnan(v_limit_merged):
-				# limits are not reached
-				# pass Twist command unaltered
-				self.vel_pub.publish(msg)
-				
-				# logging
-				self.logMotion( time.time(), \
-						"pass_through", \
-						command.linear.x, \
-						command.linear.y, \
-						command.linear.z, \
-						command.angular.x, \
-						command.angular.y, \
-						command.angular.z, \
-						msg.linear.x, \
-						msg.linear.y, \
-						msg.linear.z, \
-						msg.angular.x, \
-						msg.angular.y, \
-						msg.angular.z, \
-						)
-				return
-		else:
+		if sum( [abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z)] ) < 0.0001:
 			# velocity is zero, avoid division and
 			# pass Twist command unaltered
 			self.vel_pub.publish(msg)
@@ -92,6 +72,35 @@ class ControlCapClass():
 						msg.angular.z, \
 						)
 			return
+		
+		# velocity is non-zero
+		# w = v/r  <=>  r = v/w  <=>  v = w*r
+		# leave r as is, we do not want to change the robot's path. Also reduce velocity of all axes by the same factor
+		reduction_ratio = v_limit_merged / max(abs(msg.linear.x), abs(msg.linear.y), abs(msg.linear.z))
+		if reduction_ratio >= 1 or isnan(v_limit_merged):
+			# limits are not reached
+			# pass Twist command unaltered
+			self.vel_pub.publish(msg)
+			
+			# logging
+			self.logMotion( time.time(), \
+					"pass_through", \
+					command.linear.x, \
+					command.linear.y, \
+					command.linear.z, \
+					command.angular.x, \
+					command.angular.y, \
+					command.angular.z, \
+					msg.linear.x, \
+					msg.linear.y, \
+					msg.linear.z, \
+					msg.angular.x, \
+					msg.angular.y, \
+					msg.angular.z, \
+					)
+			return
+
+			
 		
 		assert reduction_ratio < 1, "ERROR: The reduction ratio ({}) when capping the control output should be smaller than 1".format(reduction_ratio)
 		# copysign(x,y) returns x with the sign of y.
@@ -138,6 +147,40 @@ class ControlCapClass():
 						msg.angular.y, \
 						msg.angular.z, \
 						)
+	
+	def maxVelFromCentripetalAccel(self, msg, amax):
+		""" Gets the max velocity from the maximal allowed acceleration and the current radius. From compile_robot_limitations.py:
+a_ges = lambda r_c: v_max**2 * r_CoG(r_c) / r_1(r_c)**2 * cos(theta_1(r_c))**2 * cos(theta_CoG(r_c))
+v_max = a_ges * r_1(r_c)**2 / ( r_CoG(r_c) * cos(theta_1(r_c))**2 * cos(theta_CoG(r_c)) )"""
+		r = self.radiusFromTwist(msg)
+		
+		CoG_x = self.robot_config['center_of_gravity'][x]
+		CoG_y = self.robot_config['center_of_gravity'][y]
+		wheel1_x = self.robot_config['wheel3'][x]
+		wheel1_y = self.robot_config['wheel3'][y]
+		
+		r_CoG     = lambda r_c: sqrt( (r_c - CoG_y)**2    + (CoG_x)**2    )
+		r_1       = lambda r_c: sqrt( (r_c - wheel1_y)**2 + (wheel1_x)**2 )
+		theta_CoG = lambda r_c: atan( abs(float(CoG_x))    / abs(r_c - CoG_y)    )
+		theta_1   = lambda r_c: atan( abs(float(wheel1_x)) / abs(r_c - wheel1_y) )
+		
+		r_c = 0.264088029343 # worst r_c as determined by compile_robot_limitations.py
+		
+		v_max = amax * r_1(r_c)**2 / ( r_CoG(r_c) * cos(theta_1(r_c))**2 * cos(theta_CoG(r_c)) )
+		
+		return v_max
+	
+	def radiusFromTwist(self, msg):
+		""" Gets the radius of the current trajectory
+v=omega*r <=> r=v/omega <=> omega=v/r """
+		v = ( msg.linear.x**2 + msg.linear.y**2 )**0.5  # assume msg.linear.z is nearly 0
+		omega = msg.angular.z
+		if abs(omega) > 0.01:
+			r = v/omega
+			return r
+		else:
+			# avoid division by 0
+			return None # float('inf')
 		
 		
 	def logMotion(self, *args):
@@ -153,21 +196,27 @@ class ControlCapClass():
 		outfile.close()
 
 
-if __name__ == '__main__':
-	try:
-		global vel_pub, mapManager
-		rospy.init_node('control_output_cap')
-		
-		control_input = rospy.get_param("~control_input")
-		control_output = rospy.get_param("~control_output")
+x, y, z = 'x', 'y', 'z'
+package = 'my_work_pkg'
 
+if __name__ == '__main__':
+	global vel_pub, mapManager
+	rospy.init_node('control_output_cap')
+	rospack = rospkg.RosPack()
+	
+	control_input = rospy.get_param("~control_input")
+	control_output = rospy.get_param("~control_output")
+	
+	try:
 		mapManager = GridMapHelper.GridMapHelper()
-		capObj = ControlCapClass(mapManager, control_input, control_output, safetyMargin=0.3)
+		robot_config = compile_robot_limitations.get_robot_config()
+		capObj = ControlCapClass(mapManager, control_input, control_output, robot_config, safetyMargin=0.3)
 		
 		rospy.spin()
 		
 	except rospy.ROSInterruptException:
 		pass
 	finally:
-		capObj.writeLog( "/home/administrator/catkin_ws_Max-OleVW/src/my_work_pkg/scripts/log/logMotion_"+str(time.time())+".csv" )
+		capObj.writeLog( rospack.get_path(package)+"/scripts/log/logMotion_"+str(time.time())+".csv" ) 
+		# on robot: /home/administrator/catkin_ws_Max-OleVW/src/my_work_pkg/scripts/log/logMotion_
 

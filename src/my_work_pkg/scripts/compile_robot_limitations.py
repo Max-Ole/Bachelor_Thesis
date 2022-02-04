@@ -128,7 +128,8 @@ For each axis the inclination is found so that the robot just starts to tip over
 
 
 def max_dynamic_accel(robot_config, axis):
-	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. Considers position of center of gravity (CoG) and an outer wheel. These need to be described in a frame such that the rotation centers x-value is 0. """
+	""" calculates the maximal acceleration that can be asserted in a direction given by axis by regarding the maximal centrifugal acceleration when turning. Considers position of center of gravity (CoG) and an outer wheel. These need to be described in a frame such that the rotation centers x-value is 0. 
+We assume that turning in either direction is symetric and we consider turning left (positive radius). This is the worst case for the Jackal as its cog is a bit to the right"""
 	
 	assert axis in {x,y,z}, "axis must be one of 'x', 'y' or 'z'."
 	# get variables from yaml
@@ -139,15 +140,15 @@ def max_dynamic_accel(robot_config, axis):
 	
 	CoG_x = robot_config['center_of_gravity'][x]
 	CoG_y = robot_config['center_of_gravity'][y]
-	wheel1_x = robot_config['wheel'][x]
-	wheel1_y = robot_config['wheel'][y]
+	wheel1_x = robot_config['wheel3'][x]
+	wheel1_y = robot_config['wheel3'][y]
 	minimal_turning_radius = robot_config['minimal_turning_radius']
 	
 	# Define formulas
-	r_CoG     = lambda r_c: sqrt( (r_c + CoG_y)**2    + (CoG_x)**2    )
-	r_1       = lambda r_c: sqrt( (r_c + wheel1_y)**2 + (wheel1_x)**2 )
-	theta_CoG = lambda r_c: atan( float(CoG_x)    / (r_c + CoG_y)    )
-	theta_1   = lambda r_c: atan( float(wheel1_x) / (r_c + wheel1_y) )
+	r_CoG     = lambda r_c: sqrt( (r_c - CoG_y)**2    + (CoG_x)**2    )
+	r_1       = lambda r_c: sqrt( (r_c - wheel1_y)**2 + (wheel1_x)**2 )
+	theta_CoG = lambda r_c: atan( abs(float(CoG_x))    / abs(r_c - CoG_y)    )
+	theta_1   = lambda r_c: atan( abs(float(wheel1_x)) / abs(r_c - wheel1_y) )
 	
 	a_ges = lambda r_c: v_max**2 * r_CoG(r_c) / r_1(r_c)**2 * cos(theta_1(r_c))**2 * cos(theta_CoG(r_c))
 	
@@ -161,6 +162,15 @@ def max_dynamic_accel(robot_config, axis):
 		if a_ges_values[idx] > a_ges_max:
 			a_ges_max = a_ges_values[idx]
 			r_c_worst = i
+			
+	print "----------------------------------"
+	print("assuming r_c_worst=0.275091697232, r_CoG={}, r_1={}".format(r_CoG(0.275091697232), r_1(0.275091697232)))
+	print("r_c_worst={}, r_CoG={}, r_1={}".format(r_c_worst, r_CoG(r_c_worst), r_1(r_c_worst)))
+	print("")
+	print("assuming r_c_worst=0.275091697232, theta_CoG={}, theta_1={}".format(theta_CoG(0.275091697232), theta_1(0.275091697232)))
+	print("r_c_worst={}, theta_CoG={}, theta_1={}".format(r_c_worst, theta_CoG(r_c_worst), theta_1(r_c_worst)))
+	print("CoG_x={}, CoG_y={}, wheel1_x={}, wheel1_y={}".format(CoG_x, CoG_y, wheel1_x, wheel1_y))
+	print "----------------------------------"
 	
 	# regard minimal_turning_radius of robot. Might overwrite r_c and thus a_ges maximum
 	if r_c_worst < minimal_turning_radius:
@@ -282,11 +292,11 @@ def main_program():
 x, y, z = 'x', 'y', 'z' # z is assumed to point up or downwards
 package = 'my_work_pkg'
 new_namespace = "/my_namespace_4_jackal_limits"
+rospack = rospkg.RosPack()
 
 if __name__ == '__main__':
 	print("\nThis utility loads information about the robot from a yaml file, compiles it to limits of what obstacles can be traversed and saves these limits as another yaml file. \nHere we assume the WORST possible robot motion.\n\n")
 	try:
-		rospack = rospkg.RosPack()
 		main_program()
 	except rospy.ROSInterruptException:
 		pass
