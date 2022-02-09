@@ -181,7 +181,7 @@ v_max = a_ges * r_1(r_c)**2 / ( r_CoG(r_c) * cos(theta_1(r_c))**2 * cos(theta_Co
 		theta_CoG = lambda r_c: atan( abs(float(CoG_x))    / abs(r_c - CoG_y)    )
 		theta_1   = lambda r_c: atan( abs(float(wheel1_x)) / abs(r_c - wheel1_y) )
 		
-		r_c = 0.264088029343 # worst r_c as determined by compile_robot_limitations.py
+		r_c = 0.264088029343 # worst r_c as determined by compile_robot_limitations.py. Could use current curve radius.
 		
 		v_max = amax * r_1(r_c)**2 / ( r_CoG(r_c) * cos(theta_1(r_c))**2 * cos(theta_CoG(r_c)) )
 		

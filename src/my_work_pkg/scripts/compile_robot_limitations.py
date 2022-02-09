@@ -162,15 +162,6 @@ We assume that turning in either direction is symetric and we consider turning l
 		if a_ges_values[idx] > a_ges_max:
 			a_ges_max = a_ges_values[idx]
 			r_c_worst = i
-			
-	print "----------------------------------"
-	print("assuming r_c_worst=0.275091697232, r_CoG={}, r_1={}".format(r_CoG(0.275091697232), r_1(0.275091697232)))
-	print("r_c_worst={}, r_CoG={}, r_1={}".format(r_c_worst, r_CoG(r_c_worst), r_1(r_c_worst)))
-	print("")
-	print("assuming r_c_worst=0.275091697232, theta_CoG={}, theta_1={}".format(theta_CoG(0.275091697232), theta_1(0.275091697232)))
-	print("r_c_worst={}, theta_CoG={}, theta_1={}".format(r_c_worst, theta_CoG(r_c_worst), theta_1(r_c_worst)))
-	print("CoG_x={}, CoG_y={}, wheel1_x={}, wheel1_y={}".format(CoG_x, CoG_y, wheel1_x, wheel1_y))
-	print "----------------------------------"
 	
 	# regard minimal_turning_radius of robot. Might overwrite r_c and thus a_ges maximum
 	if r_c_worst < minimal_turning_radius:
