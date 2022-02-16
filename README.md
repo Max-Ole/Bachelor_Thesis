@@ -31,7 +31,7 @@ if necessary to keep the robot safe. By default move_base if launched.
 2. Run `nav_control_limited.launch`
 	
 # Thesis:
-The thesis is available in the file `Bachelor_Thesis_Max-Ole_von_Waldow.pdf` and the slides for the presentation of the thesis are in the file `Kolloquium_Powerpoint.pptx`.
+The thesis is available in the file `Bachelor_Thesis_Max-Ole_von_Waldow.pdf` and the slides for the presentation of the thesis are in the file `Colloquium_Powerpoint.pptx`.
 ## Abstract of the Thesis:
 In unstructured environments, a robot’s stability depends on its design and
 motion. In this thesis the traversability of rough terrain is determined and
