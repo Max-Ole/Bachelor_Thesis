@@ -30,7 +30,9 @@ if necessary to keep the robot safe. By default move_base if launched.
 1. Compile with `compile_control_filterchain.py`
 2. Run `nav_control_limited.launch`
 	
-# Abstract of the Thesis:
+# Thesis:
+The thesis is available in the file `Bachelor_Thesis_Max-Ole_von_Waldow.pdf` and the slides for the presentation of the thesis are in the file `Kolloquium_Powerpoint.pptx`.
+## Abstract of the Thesis:
 In unstructured environments, a robot’s stability depends on its design and
 motion. In this thesis the traversability of rough terrain is determined and
 tailored to the abilities of a mobile robot. We model dangerous situations that
