@@ -1,0 +1,96 @@
+CHANGES MADE TO AVOID ERRORS WHEN COMPILING:
+
+
+OpenCV Catkin Error:
+CMake Error at /opt/ros/melodic/share/catkin/cmake/catkinConfig.cmake:83 (find_package):
+  Could not find a package configuration file provided by "OpenCV" with any
+  of the following names:
+
+    OpenCVConfig.cmake
+    opencv-config.cmake
+Answer:
+Edit CMakeLists.txt of rescue robotics package: OpenCV as standalone package
+https://answers.ros.org/question/123241/could-not-find-a-configuration-file-for-package-opencv/
+
+
+--------------------------------------------------------------------------------
+
+
+error: ‘PCL_MAKE_ALIGNED_OPERATOR_NEW’ does not name a type; did you mean ‘EIGEN_MAKE_ALIGNED_OPERATOR_NEW’?
+   PCL_MAKE_ALIGNED_OPERATOR_NEW
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+==>   in src/elevation_mapping/elevation_mapping/include/elevation_mapping/PointXYZRGBConfidenceRatio.hpp:31:3
+//PCL_MAKE_ALIGNED_OPERATOR_NEW replaced due to catkin build error with EIGEN_MAKE_ALIGNED_OPERATOR_NEW:
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+
+--------------------------------------------------------------------------------
+
+fatal error: filters/filter_chain.hpp: No such file or directory
+ #include <filters/filter_chain.hpp>
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~
+
+==> in src/elevation_mapping/elevation_mapping/include/elevation_mapping/postprocessing/PostprocessingPipelineFunctor.hpp:12:10: 
+//#include <filters/filter_chain.hpp> replaced with a .h file, dure to error with catkin build
+#include <filters/filter_chain.h>
+
+
+---------------------------------------------------------------------------------
+
+in src/elevation_mapping/elevation_mapping_demos/scripts/tf_to_pose_publisher.py
+change shebang from "!/usr/bin/env python3" to "!/usr/bin/env python2"
+
+
+---------------------------------------------------------------------------------
+
+
+
+In following files:
+grid_map/grid_map_cv/include/grid_map_cv/InpaintFilter.hpp
+grid_map/grid_map_filters/include/grid_map_filters/MedianFillFilter.hpp
+grid_map/grid_map_filters/include/grid_map_filters/CurvatureFilter.hpp
+grid_map/grid_map_filters/include/grid_map_filters/MinInRadiusFilter.hpp
+grid_map/grid_map_filters/include/grid_map_filters/MeanInRadiusFilter.hpp
+grid_map/grid_map_filters/include/grid_map_filters/ThresholdFilter.hpp
+grid_map/grid_map_filters/include/grid_map_filters/MockFilter.hpp
+grid_map/grid_map_filters/include/grid_map_filters/NormalVectorsFilter.hpp
+NormalColorMapFilter.hpp
+LightIntensityFilter.hpp
+DuplicationFilter.hpp
+ColorFillFilter.hpp
+DeletionFilter.hpp
+ColorBlendingFilter.hpp
+ColorMapFilter.hpp
+MathExpressionFilter.hpp
+SlidingWindowMathExpressionFilter.hpp
+SetBasicLayersFilter.hpp
+BufferNormalizerFilter.hpp
+
+fatal error: filters/filter_base.hpp: No such file or directory
+ #include <filters/filter_base.hpp>
+          ^~~~~~~~~~~~~~~~~~~~~~~~~
+
+==> // #include <filters/filter_base.hpp> changed according to https://github.com/ANYbotics/grid_map/issues/303
+#include <filters/filter_base.h>
+
+
+Also in:
+grid_map/grid_map_demos/include/grid_map_demos/FiltersDemo.hpp
+grid_map/grid_map_demos/src/normal_filter_comparison_node.cpp
+
+fatal error: filters/filter_chain.hpp: No such file or directory
+ #include <filters/filter_chain.hpp>
+          ^~~~~~~~~~~~~~~~~~~~~~~~~~
+==> // #include <filters/filter_chain.hpp> changed due to error with catkin build
+#include <filters/filter_chain.h>
+
+
+
+---------------------------------------------------------------------------------
+
+Filter chain SlidingWindowMathExpressionFilter:
+Use BufferNormalizationFilter first or add to source code:
+add "mapInCopy.convertToDefaultStartIndex();" to SlidingWindowMathExpressionFilter<T>::update (line 83) in SlidingWindowMathExpressionFilter.cpp
+because of error:"SlidingWindowIterator cannot be used with grid maps that don't have a default buffer start index." in SlidingWindowIterator.cpp

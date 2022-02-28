@@ -1,0 +1,38 @@
+### Evaluation Experiment ###
+
+rosrun rviz rviz -d rviz/nav_elevationMap_moveBase.rviz
+
+
+-----------------------
+basic_gmapping.launch
+ISSUE::: [ WARN] [1642436379.363180573]: Can't transform pointcloud from frame zed2_left_camera_frame to front_camera  at time 1642436379.005251416, reason: 0
+
+save map:
+	rosrun map_server map_saver -f ./savedMaps/my_map_name map:=/map
+IMAGES: path plan in map
+
+
+
+-----------------------
+nav_in_traversabilityMap.launch
+save map:
+	rosservice call /elevation_mapping/save_map "file_path: '/home/administrator/catkin_ws_Max-OleVW/myRecordedData/eval_skatepark_1.bag'"
+IMAGES: path plan in map
+
+
+
+-----------------------
+nav_control_limited.launch
+save map
+IMAGES: path plan in map
+
+
+
+-----------------------
+copy over:
+	gmapping map
+	my maps
+	log files: ./log/logMotion_*.csv
+scp -r administrator@192.168.131.141:catkin_ws_Max-OleVW/myRecordedData/ BA_MaxOle_ws/myRecordedData/
+
+-----------------------

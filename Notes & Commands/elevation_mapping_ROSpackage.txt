@@ -1,0 +1,51 @@
+PARAMETERS::
+
+input_sources:
+add zedCamera or Lidar here
+
+postprocessor_pipeline_name: 
+defines grid_map filter chain in .yaml file
+loaded as parameter of elevation mapping node in launch file: $(find elevation_mapping_demos)/config/postprocessing/postprocessor_pipeline.yaml
+
+
+SAVE/LOAD MAP::
+rosservice call /elevation_mapping/save_map "file_path: '/home/administrator/catkin_ws_Max-OleVW/myRecordedData/elevation_map_geb64_2.bag'"
+scp -r administrator@192.168.131.141:catkin_ws_Max-OleVW/myRecordedData/ BA_MaxOle_ws/myRecordedData/
+rosservice call /elevation_mapping/load_map "file_path: '/home/ubuntu/Desktop/BA_MaxOle_ws/myRecordedData/EvaluationMaps/eval_skatepark_1.bag'"
+rosservice call /elevation_mapping/disable_updates {}
+rosservice call /elevation_mapping/enable_updates {}
+# check to load map into rviz:
+!!! gazebo needs to be running to have correct frame odom
+!!! updates need to be disabled, otherwise loaded data is being overwritten
+!!! color layer needs to be set to a layer that is present in the loaded file or else nothing will show up
+!!! search for map data in rviz view. Map is no longer robot centric and may be far away from robot
+!!! postprocessing must not fail
+# grid_map visualized as occupancy_grid
+# save to disk via:
+rosrun map_server map_saver -f ./savedMaps/my_map_name map:=/elevation_map_raw_visualization/traversability_grid
+
+
+PACKAGES::
+ouster_example:	Version von wilselby und eine von Lars Schilling. Wechseln abhängig von Softwareversion auf dem Lidar oder Simulation/Jackal.
+rescue_jackal:	Verbindet Jackal mit elevation_mapping. Aus Übung für einen Kurs aus dem Master.
+
+
+DEFINITIONS::
+xacro:  macro Sprache, um einfacher xml zu schreiben. Argument "--inorder" weglassen für ROS distros melodic and later
+yaml: sehr auf Syntax und richtige Einrückung mit Leerzeichen achten
+
+
+SETTING RESOLUTION:
+r: map resolution (default: 1cm, Vorlage: 10cm)
+h: Minimal erkennbare Stufe (Jackal Bodenabstand 6.5cm)
+a: Maximal berechenbare Steigung für diese Stufe (sollte höher, als befahrbare Steigung sein)
+a = arctan( h/r )
+<=>
+r = h / tan(a)
+<=>
+h = r * tan(a)
+
+global map <-> robot-centric map:
+Map size is limited to the maximal number a double can hold. (parameters: length_in_x, length_in_y )
+Map Position follows robot or is fixed (parameter: track_point_frame_id set to /odom or /base_link)
+computational effort. minimal resolution needed

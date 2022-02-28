@@ -1,0 +1,5 @@
+# add this to /etc/hosts file with "sudo nano /etc/hosts"
+# IP and name of jackal robot and its nvidia jetson:
+
+192.168.131.141 cpr-j100-0407
+192.168.131.142 cpr-j100-0407-jetson

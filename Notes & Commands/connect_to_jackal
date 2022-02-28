@@ -1,0 +1,29 @@
+# edit /etc/hosts, add Jackal
+
+"terminal" --noclose -e echo "hello world"
+
+#----------
+
+ssh administrator@192.168.131.141
+clearpath
+
+roslaunch zed_wrapper zed_no_tf.launch
+
+source ~/catkin_ws_Max-OleVW/devel/setup.bash
+roscd my_work_pkg
+
+# ---------
+
+cd ~/Desktop
+source Jackal141
+
+
+# --------
+# to transport folder:
+# scp -r administrator@192.168.131.141:catkin_ws_Max-OleVW/myRecordedData/ BA_MaxOle_ws/myRecordedData/
+
+
+
+# --------
+# bluetooth controller PS4
+# MAC?: 1C:A0:B8:8B:6B:4C

@@ -1,0 +1,20 @@
+sudo apt-get install libeigen3-dev
+sudo apt-get install ros-$ROS_DISTRO-grid-map
+
+cd catkin_workspace/src
+git clone https://github.com/anybotics/elevation_mapping.git
+cd ../
+catkin config --cmake-args -DCMAKE_BUILD_TYPE=Release
+catkin build
+
+sudo apt install ros-melodic-jackal-simulator ros-melodic-jackal-desktop ros-melodic-jackal-navigation
+
+https://github.com/ANYbotics/kindr.git
+
+#make change to elevation_mapping/include/elevation_mapping/PointXYZRGBConfidenceRatio.hpp
+#make change to elevation_mapping/include/elevation_mapping/postprocessing/PostprocessingPipelineFunctor.hpp
+
+sudo apt install ros-melodic-turtlebot3-gazebo
+
+git clone https://github.com/l-schilling/jackal_simulation_rob.git
+git clone https://github.com/wilselby/ouster_example

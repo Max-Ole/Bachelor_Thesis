@@ -1,0 +1,38 @@
+##Verbinden mit ROS:
+source <Datei1> (Jackal101 oder Jackal141)
+Datei1: export...
+
+##Sync clocks (Datei auf jetson):
+source time_synchronize.sh
+
+##Verbinden mit Jackal:
+ssh administrator@<ip>
+password: clearpath
+
+##Verbinden mit Jetson:
+ssh nvidia@<ip jetson>
+password: nvidia
+
+## Lidar (neu)starten und anzeigen
+roslaunch ouster_ros_launch_os1_jackal.launch
+# anzeigen in rviz:
+Frame für global options: odom
+add topic: ...
+
+## Stereo Kamera starten
+roslaunch zed_wrapper zed_no_tf.launch
+
+## Sourcing ROS
+main ROS:
+source /opt/ros/melodic/setup.bash
+In Catkin Workspace:
+source devel/setup.bash
+or add to bashrc:
+echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+
+## Movement
+rostopic pub /cmd_vel geometry_msgs/Twist -r 10 -- '[0.1,0.0,0.0]' '[0.0,0.0,0.0]'
+
+## restart all ros stuff
+sudo systemctl restart ros

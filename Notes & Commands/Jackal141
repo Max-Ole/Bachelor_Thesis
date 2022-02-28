@@ -1,0 +1,7 @@
+### type "source Jackal141" to execute these commands. This connects the ROS installations on the robot and the remote computer
+
+### Master ROS on the Jackal
+export ROS_MASTER_URI=http://192.168.131.141:11311
+
+### IP of this PC
+export ROS_IP=192.168.131.249

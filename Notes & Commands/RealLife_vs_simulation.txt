@@ -1,0 +1,9 @@
+### Real Life  <->  Simulation ###
+
+odom:
+zed_node/pose_with_covariance  <->  /base_link_pose
+
+points:
+/zed_node/point_cloud/cloud_registered  <->  /front/scan
+
+
